@@ -1,0 +1,138 @@
+# File ramtest.asm
+0000			; ============================================================================== 
+0000			; TUSCAN SYSTEM 1 - ZERO-RAM FIRST-STAGE BOOT DIAGNOSTIC (SERIAL VERSION) 
+0000			; Target Assembler: Standalone GNU z80asm 
+0000			; Hexadecimal Prefix: $ 
+0000			; Memory Footprint: Runs entirely out of EPROM (Requires 0 Bytes of RAM) 
+0000			; Strict 8KB Motherboard Bound Check Included. 
+0000			; ============================================================================== 
+0000			 
+0000			; ------------------------------------------------------------------------------ 
+0000			; HARDWARE PORT ASSIGNMENTS (MATCHING TUSCAN HARDWARE SPECIFICATIONS) 
+0000			; ------------------------------------------------------------------------------ 
+0000			RSDO:       EQU     $00             ; Serial Data Output Port 
+0000			RSS:        EQU     $00             ; Serial UART Status Port 
+0000			RSHS:       EQU     $06             ; Serial Handshake Evaluation Pin 
+0000			 
+0000			; ------------------------------------------------------------------------------ 
+0000			; MONITOR COLD BOOT & SYSTEM INITIALIZATION 
+0000			; ------------------------------------------------------------------------------ 
+0000			            ORG     $F800           ; Base entry point for your test EPROM 
+f800 c3 03 f8		TRUMP:      JP      PON             ; Force absolute jump to break hardware boot mode 
+f803			 
+f803 f3			PON:        DI                      ; Disable all masks and interrupts 
+f804			             
+f804			            ; Output an initial carriage return and line feed to settle terminal 
+f804 3e 0d		            LD      A,13            ; Carriage Return 
+f806 18 3b		            JR      SER_OUT 
+f808 3e 0a		CR_DONE:    LD      A,10            ; Line Feed 
+f80a 18 37		            JR      SER_OUT 
+f80c			LF_DONE:     
+f80c			 
+f80c			            ; Print Sign-On character 'T' (Testing Initialising) 
+f80c 3e 54		            LD      A,'T' 
+f80e 18 33		            JR      SER_OUT 
+f810			SIGN_DONE:   
+f810			 
+f810			            ; Initialize RAM Scanner Address Register Tracking Pair 
+f810 26 00		            LD      H,$00           ; Reset High Address byte parameter 
+f812 2e 00		            LD      L,$00           ; Reset Low Address byte parameter 
+f814			 
+f814			; ------------------------------------------------------------------------------ 
+f814			; MASTER MEMORY EVALUATION LOOP 
+f814			; ------------------------------------------------------------------------------ 
+f814			RAM_LOOP:    
+f814			            ; Check if we have hit a new page boundary (Low byte = $00) 
+f814 7d			            LD      A,L 
+f815 fe 00		            CP      $00 
+f817 20 04		            JR      NZ,SWEEP_BYTE 
+f819			             
+f819 3e 2e		            LD      A,'.'           ; Heartbeat indicator character token 
+f81b 18 26		            JR      SER_OUT 
+f81d			DOT_DONE:    
+f81d			 
+f81d			SWEEP_BYTE:  
+f81d			            ; Test Pattern 1: Alternating Bit Checkerboard ($55 = 01010101) 
+f81d 46			            LD      B,(HL)          ; Preserve the original byte in register B 
+f81e 3e 55		            LD      A,$55           ; Load test matrix pattern 1 
+f820 77			            LD      (HL),A          ; Write directly to the physical RAM chip 
+f821 be			            CP      (HL)            ; Verify the bit cells latched accurately 
+f822 20 13		            JR      NZ,FAIL_TRAP    ; Mismatch found! RAM error triggered 
+f824			             
+f824			            ; Test Pattern 2: Inverted Checkerboard ($AA = 10101010) 
+f824 3e aa		            LD      A,$AA           ; Load test matrix pattern 2 
+f826 77			            LD      (HL),A          ; Write directly to the physical RAM chip 
+f827 be			            CP      (HL)            ; Verify the bit cells flipped cleanly 
+f828 20 0d		            JR      NZ,FAIL_TRAP    ; Mismatch found! RAM error triggered 
+f82a			             
+f82a 70			            LD      (HL),B          ; Restore the original byte back to RAM cell 
+f82b			 
+f82b			            ; Increment scanner address workspace to target next cell location 
+f82b 23			            INC     HL               
+f82c			             
+f82c			            ; Check if the scanner has passed the 8KB motherboard limit ($1FFF) 
+f82c			            ; If H reaches $20 (High byte of $2000), motherboard RAM is complete. 
+f82c 7c			            LD      A,H 
+f82d fe 20		            CP      $20             ; Check if High byte hits $20 
+f82f 20 e3		            JR      NZ,RAM_LOOP     ; If not, keep sweeping motherboard RAM 
+f831			 
+f831			            ; Total System Scan Pass successful! Print 'P' (Passed) and restart loop 
+f831 3e 50		            LD      A,'P' 
+f833 18 0e		            JR      SER_OUT 
+f835 18 cc		PASS_DONE:  JR      PON             ; Infinite loop diagnostic testing pass (To PON) 
+f837			 
+f837			; ------------------------------------------------------------------------------ 
+f837			; DIAGNOSTIC FAILURE MONITOR EMISSION LOOP 
+f837			; ------------------------------------------------------------------------------ 
+f837			FAIL_TRAP:   
+f837 3e 45		            LD      A,'E'           ; Error flag indicator token 
+f839 18 08		            JR      SER_OUT 
+f83b			ERR_DONE:    
+f83b 7c			            LD      A,H             ; Pull the bad address High Page byte 
+f83c 18 05		            JR      SER_OUT 
+f83e			HIGH_DONE:   
+f83e 7d			            LD      A,L             ; Pull the bad address Low Offset byte 
+f83f 18 02		            JR      SER_OUT 
+f841			LOW_DONE:    
+f841 18 f4		            JR      FAIL_TRAP       ; Repeat emission loop infinitely 
+f843			 
+f843			; ------------------------------------------------------------------------------ 
+f843			; ZERO-STACK SERIAL OUTPUT INLINE DRIVER SUB-ROUTINE 
+f843			; ------------------------------------------------------------------------------ 
+f843			SER_OUT:     
+f843 4f			            LD      C,A             ; Cache output character value parameter inside C 
+f844			 
+f844 db 06		TX_WAIT:    IN      A,(RSHS)        ; Read the serial handshake line port status 
+f846 e6 01		            AND     $01             ; Mask bit 0 
+f848 28 fa		            JR      Z,TX_WAIT       ; Spin if external terminal is busy 
+f84a			             
+f84a db 00		            IN      A,(RSS)         ; Pull internal UART flag parameters 
+f84c e6 10		            AND     $10             ; Test Transmitter Buffer Empty flag ($10) 
+f84e 28 f4		            JR      Z,TX_WAIT       ; Spin if internal shift registers are full 
+f850			             
+f850 79			            LD      A,C             ; Restore character value out of register cache 
+f851 d3 00		            OUT     (RSDO),A        ; Write data byte directly to serial transmit line $00 
+f853			 
+f853			            ; ------------------------------------------------------------------ 
+f853			            ; STATE-DRIVEN RETURN VECTOR REDIRECTION ROUTER 
+f853			            ; ------------------------------------------------------------------ 
+f853 fe 54		            CP      'T' 
+f855 28 b9		            JR      Z,SIGN_DONE 
+f857 fe 2e		            CP      '.' 
+f859 28 c2		            JR      Z,DOT_DONE 
+f85b fe 50		            CP      'P' 
+f85d 28 d6		            JR      Z,PASS_DONE 
+f85f fe 45		            CP      'E' 
+f861 28 d8		            JR      Z,ERR_DONE 
+f863 bc			            CP      H               ; Was it the bad address high byte? 
+f864 28 d8		            JR      Z,HIGH_DONE 
+f866 bd			            CP      L               ; Was it the bad address low byte? 
+f867 28 d8		            JR      Z,LOW_DONE 
+f869 fe 0d		            CP      13              ; Was it the Carriage Return initialization? 
+f86b 28 9b		            JR      Z,CR_DONE 
+f86d fe 0a		            CP      10              ; Was it the Line Feed initialization? 
+f86f 28 9b		            JR      Z,LF_DONE 
+f871			             
+f871 18 90		            JR      PON             ; Emergency escape hatch back to initialization 
+# End of file ramtest.asm
+f873

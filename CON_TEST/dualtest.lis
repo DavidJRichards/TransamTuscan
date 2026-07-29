@@ -1,0 +1,98 @@
+# File dualtest.asm
+0000			; ============================================================================== 
+0000			; TUSCAN SYSTEM 1 - DUAL-MODE HARDWARE I/O PORT VERIFICATION TOOL 
+0000			; Target Assembler: Standalone GNU z80asm 
+0000			; Hexadecimal Prefix: $ 
+0000			; Memory Footprint: Runs entirely out of EPROM (Requires 0 Bytes of RAM) 
+0000			; Dynamic on-the-fly switching between Serial and Local VDU hardware profiles. 
+0000			; ============================================================================== 
+0000			 
+0000			; ------------------------------------------------------------------------------ 
+0000			; TUSCAN SYSTEM I/O REGISTER MAPPINGS 
+0000			; ------------------------------------------------------------------------------ 
+0000			RSS:        EQU     $00             ; RS232 UART Status Input Port 
+0000			RSDO:       EQU     $00             ; RS232 Data Output Port 
+0000			RSDI:       EQU     $01             ; RS232 Data Input Port 
+0000			VDU:        EQU     $02             ; Onboard VDU Strobe Output Port 
+0000			IOSEL:      EQU     $04             ; Hardware Configuration Jumper Input Port 
+0000			KEYB:       EQU     $05             ; Onboard Keyboard Latch Register 
+0000			RSHS:       EQU     $06             ; RS232 Handshake Evaluation Pin 
+0000			 
+0000			; ------------------------------------------------------------------------------ 
+0000			; START OF DIAGNOSTIC CODE SPACE 
+0000			; ------------------------------------------------------------------------------ 
+0000			            ORG     $F800           ; Base entry point for your test EPROM 
+f800 c3 03 f8		TRUMP:      JP      PON             ; Force absolute jump to break hardware boot mode 
+f803			 
+f803 f3			PON:        DI                      ; Disable all masks and interrupts 
+f804			 
+f804			; ------------------------------------------------------------------------------ 
+f804			; MASTER DUAL-ROUTE EVALUATION DISPATCH LOOP 
+f804			; ------------------------------------------------------------------------------ 
+f804			POLL_RIG: 
+f804 db 04		            IN      A,(IOSEL)       ; Sample your custom Port $04 switcher register 
+f806 e6 30		            AND     $30             ; Mask bits 4 and 5 exactly like the stock ROM 
+f808 28 0d		            JR      Z,DO_SERIAL     ; If 00, route execution straight to Serial Mode 
+f80a			 
+f80a			            ; ------------------------------------------------------------------ 
+f80a			            ; ONBOARD VDU MODE INPUT & STROBE ROUTING 
+f80a			            ; ------------------------------------------------------------------ 
+f80a db 05		            IN      A,(KEYB)        ; Sample your Port $05 keyboard reader 
+f80c a7			            AND     A               ; Test the Z80 sign flag metrics 
+f80d f2 04 f8		            JP      P,POLL_RIG      ; If Bit 7 is 0, cache is empty. Loop back. 
+f810			 
+f810			            ; Key found! Process and echo it via VDU Out (Port $02) 
+f810 e6 7f		            AND     $7F             ; Strip top bit to isolate clean 7-bit ASCII 
+f812 cd 26 f8		            CALL    LOCAL_VDU       ; Display natively on the VDU port 
+f815 18 ed		            JR      POLL_RIG        ; Loop back to scan again 
+f817			 
+f817			            ; ------------------------------------------------------------------ 
+f817			            ; SERIAL RS232 MODE INPUT & OUTPUT ROUTING 
+f817			            ; ------------------------------------------------------------------ 
+f817			DO_SERIAL: 
+f817 db 00		            IN      A,(RSS)         ; Sample your Port $00 UART Status register 
+f819 e6 01		            AND     $01             ; Test Bit 0 (Data Available) 
+f81b 28 e7		            JR      Z,POLL_RIG      ; If 0, no key is waiting. Loop back. 
+f81d			 
+f81d db 01		            IN      A,(RSDI)        ; Key found! Pull the clean byte from Port $01 
+f81f e6 7f		            AND     $7F             ; Normalize to 7-bit ASCII 
+f821 cd 36 f8		            CALL    REMOTE_SER      ; Transmit natively via the Serial ports 
+f824 18 de		            JR      POLL_RIG        ; Loop back to scan again 
+f826			 
+f826			; ------------------------------------------------------------------------------ 
+f826			; ONBOARD VDU OUTPUT SUB-ROUTINE (PORT $02 DRIVER - PRE-SHIFTED & EDGE-TRIGGERED) 
+f826			; ------------------------------------------------------------------------------ 
+f826			LOCAL_VDU: 
+f826 f5			            PUSH    AF              ; Preserve character on the stack 
+f827 3d			            DEC     A               ; Apply Tuscan hardware pre-shift correction 
+f828 e6 7f		            AND     $7F             ; Force Bit 7 LOW (Strobe Low) 
+f82a d3 02		            OUT     (VDU),A         ; 1st strobe step 
+f82c f6 80		            OR      $80             ; Toggle Bit 7 HIGH (Strobe High - Latch Trigger) 
+f82e d3 02		            OUT     (VDU),A         ; 2nd strobe step 
+f830 e6 7f		            AND     $7F             ; Force Bit 7 LOW (Strobe Low Reset) 
+f832 d3 02		            OUT     (VDU),A         ; 3rd strobe step 
+f834 f1			            POP     AF              ; Restore character 
+f835 c9			            RET 
+f836			 
+f836			; ------------------------------------------------------------------------------ 
+f836			; SERIAL RS232 OUTPUT SUB-ROUTINE (PORT $00 DRIVER - RAW & HANDSHAKED) 
+f836			; ------------------------------------------------------------------------------ 
+f836			REMOTE_SER: 
+f836 f5			            PUSH    AF              ; Save character code 
+f837 47			            LD      B,A             ; Cache data byte in register B 
+f838			 
+f838 db 06		SER_WAIT:   IN      A,(RSHS)        ; Read the serial handshake pin on Port $06 
+f83a e6 01		            AND     $01             ; Test Bit 0 (Clear to Send status flag) 
+f83c 28 fa		            JR      Z,SER_WAIT      ; Spin here while the line is blocked 
+f83e			 
+f83e db 00		            IN      A,(RSS)         ; Read the UART status register on Port $00 
+f840 e6 10		            AND     $10             ; Test Bit 4 (Transmitter Buffer Empty) 
+f842 28 f4		            JR      Z,SER_WAIT      ; Spin here while the transmit register is busy 
+f844			 
+f844 78			            LD      A,B             ; Restore character from cache register 
+f845 d3 00		            OUT     (RSDO),A        ; Output raw unshifted ASCII straight to Port $00 
+f847 f1			            POP     AF              ; Clean up stack 
+f848 c9			            RET 
+f849			 
+# End of file dualtest.asm
+f849

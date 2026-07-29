@@ -1,0 +1,133 @@
+# File vidtest.asm
+0000			; ============================================================================== 
+0000			; TUSCAN SYSTEM 1 - ZERO-RAM VIDEO TERMINAL DIAGNOSTIC (VIDEO VERSION) 
+0000			; Target Assembler: Standalone GNU z80asm 
+0000			; Hexadecimal Prefix: $ 
+0000			; Memory Footprint: Runs entirely out of EPROM (Requires 0 Bytes of RAM) 
+0000			; Strict 8KB Motherboard Bound Check Included. 
+0000			; ============================================================================== 
+0000			 
+0000			; ------------------------------------------------------------------------------ 
+0000			; HARDWARE PORT ASSIGNMENTS (MATCHING TUSCAN DISPLAY INTERFACE SPECIFICATION) 
+0000			; ------------------------------------------------------------------------------ 
+0000			VDU:        EQU     $02             ; Onboard VDU Strobe Port 
+0000			 
+0000			; ------------------------------------------------------------------------------ 
+0000			; MONITOR COLD BOOT & SYSTEM INITIALIZATION 
+0000			; ------------------------------------------------------------------------------ 
+0000			            ORG     $F800           ; Base entry point for your test EPROM 
+f800 c3 03 f8		TRUMP:      JP      PON             ; Force absolute jump to break hardware boot mode 
+f803			 
+f803 f3			PON:        DI                      ; Disable all masks and interrupts 
+f804			             
+f804			            ; Output an initial clear/form feed command to settle display hardware 
+f804 3e 0c		            LD      A,$0C           ; ASCII Form Feed (FF / Clear Screen) 
+f806 18 37		            JR      VDU_OUT 
+f808			FF_DONE:     
+f808			 
+f808			            ; Print Sign-On character 'V' (Video Testing Initialising) 
+f808 3e 56		            LD      A,'V' 
+f80a 18 33		            JR      VDU_OUT 
+f80c			SIGN_DONE:   
+f80c			 
+f80c			            ; Initialize RAM Scanner Address Register Tracking Pair 
+f80c 26 00		            LD      H,$00           ; Reset High Address byte parameter 
+f80e 2e 00		            LD      L,$00           ; Reset Low Address byte parameter 
+f810			 
+f810			; ------------------------------------------------------------------------------ 
+f810			; MASTER MEMORY EVALUATION LOOP 
+f810			; ------------------------------------------------------------------------------ 
+f810			RAM_LOOP:    
+f810			            ; Check if we have hit a new page boundary (Low byte = $00) 
+f810 7d			            LD      A,L 
+f811 fe 00		            CP      $00 
+f813 20 04		            JR      NZ,SWEEP_BYTE 
+f815			             
+f815 3e 2e		            LD      A,'.'           ; Heartbeat indicator character token 
+f817 18 26		            JR      VDU_OUT 
+f819			DOT_DONE:    
+f819			 
+f819			SWEEP_BYTE:  
+f819			            ; Test Pattern 1: Alternating Bit Checkerboard ($55 = 01010101) 
+f819 46			            LD      B,(HL)          ; Preserve the original byte in register B 
+f81a 3e 55		            LD      A,$55           ; Load test matrix pattern 1 
+f81c 77			            LD      (HL),A          ; Write directly to the physical RAM chip 
+f81d be			            CP      (HL)            ; Verify the bit cells latched accurately 
+f81e 20 13		            JR      NZ,FAIL_TRAP    ; Mismatch found! RAM error triggered 
+f820			             
+f820			            ; Test Pattern 2: Inverted Checkerboard ($AA = 10101010) 
+f820 3e aa		            LD      A,$AA           ; Load test matrix pattern 2 
+f822 77			            LD      (HL),A          ; Write directly to the physical RAM chip 
+f823 be			            CP      (HL)            ; Verify the bit cells flipped cleanly 
+f824 20 0d		            JR      NZ,FAIL_TRAP    ; Mismatch found! RAM error triggered 
+f826			             
+f826 70			            LD      (HL),B          ; Restore the original byte back to RAM cell 
+f827			 
+f827			            ; Increment scanner address workspace to target next cell location 
+f827 23			            INC     HL               
+f828			             
+f828			            ; Check if the scanner has passed the 8KB motherboard limit ($1FFF) 
+f828			            ; If H reaches $20 (High byte of $2000), motherboard RAM is complete. 
+f828 7c			            LD      A,H 
+f829 fe 20		            CP      $20             ; Check if High byte hits $20 
+f82b 20 e3		            JR      NZ,RAM_LOOP     ; If not, keep sweeping motherboard RAM 
+f82d			 
+f82d			            ; Total 8KB Motherboard Scan Pass successful! Print 'P' and restart 
+f82d 3e 50		            LD      A,'P' 
+f82f 18 0e		            JR      VDU_OUT 
+f831 18 d0		PASS_DONE:  JR      PON             ; Infinite loop diagnostic testing pass (To PON) 
+f833			 
+f833			; ------------------------------------------------------------------------------ 
+f833			; DIAGNOSTIC FAILURE MONITOR EMISSION LOOP 
+f833			; ------------------------------------------------------------------------------ 
+f833			FAIL_TRAP:   
+f833 3e 45		            LD      A,'E'           ; Error flag indicator token 
+f835 18 08		            JR      VDU_OUT 
+f837			ERR_DONE:    
+f837 7c			            LD      A,H             ; Pull the bad address High Page byte 
+f838 18 05		            JR      VDU_OUT 
+f83a			HIGH_DONE:   
+f83a 7d			            LD      A,L             ; Pull the bad address Low Offset byte 
+f83b 18 02		            JR      VDU_OUT 
+f83d			LOW_DONE:    
+f83d 18 f4		            JR      FAIL_TRAP       ; Repeat emission loop infinitely 
+f83f			 
+f83f			; ------------------------------------------------------------------------------ 
+f83f			; ZERO-STACK VIDEO TERMINAL OUTPUT INLINE DRIVER SUB-ROUTINE 
+f83f			; ------------------------------------------------------------------------------ 
+f83f			VDU_OUT:     
+f83f 3d			            DEC     A               ; Match the monitor's physical driver baseline 
+f840 e6 7f		            AND     $7F             ; Bring hardware strobe line low 
+f842 d3 02		            OUT     (VDU),A         ; Pulse Port $02 
+f844 f6 80		            OR      $80             ; Pull strobe line high 
+f846 d3 02		            OUT     (VDU),A          
+f848 e6 7f		            AND     $7F             ; Clear strobe back down to low safety logic level 
+f84a d3 02		            OUT     (VDU),A          
+f84c 3c			            INC     A               ; Restore true ASCII byte into accumulator 
+f84d			             
+f84d			            ; Delay padding to protect legacy video controllers from overrun crashes 
+f84d 1e 78		            LD      E,120           ; Load timing loop parameter 
+f84f 1d			VDU_PAD:    DEC     E 
+f850 20 fd		            JR      NZ,VDU_PAD 
+f852			 
+f852			            ; ------------------------------------------------------------------ 
+f852			            ; STATE-DRIVEN RETURN VECTOR REDIRECTION ROUTER 
+f852			            ; ------------------------------------------------------------------ 
+f852 fe 56		            CP      'V' 
+f854 28 b6		            JR      Z,SIGN_DONE 
+f856 fe 2e		            CP      '.' 
+f858 28 bf		            JR      Z,DOT_DONE 
+f85a fe 50		            CP      'P' 
+f85c 28 d3		            JR      Z,PASS_DONE 
+f85e fe 45		            CP      'E' 
+f860 28 d5		            JR      Z,ERR_DONE 
+f862 bc			            CP      H               ; Was it the bad address high byte? 
+f863 28 d5		            JR      Z,HIGH_DONE 
+f865 bd			            CP      L               ; Was it the bad address low byte? 
+f866 28 d5		            JR      Z,LOW_DONE 
+f868 fe 0c		            CP      $0C             ; Was it the form feed initialization? 
+f86a 28 9c		            JR      Z,FF_DONE 
+f86c			             
+f86c 18 95		            JR      PON             ; Emergency escape hatch back to initialization 
+# End of file vidtest.asm
+f86e

@@ -1,0 +1,114 @@
+================================================================================
+            UPDATED SYSTEM STRUCTURAL LABEL TABLE (AMENDED SOURCE)
+================================================================================
+
+Symbol Type  | Label Name   | Memory/Value  | Structural Operational Purpose
+-------------+--------------+---------------+-----------------------------------
+System Equ   | ETX          | $03           | Abort Command Token Check (^C)
+System Equ   | EOT          | $04           | End of Transmission Marker (^D)
+System Equ   | BS           | $08           | Backspace Stream Action Offset
+System Equ   | TAB          | $09           | Tab Expansion Layout Trigger
+System Equ   | LF           | $0A           | Line Feed Carriage Advance
+System Equ   | CR           | $0D           | Carriage Return Line Terminus
+System Equ   | FF           | $0C           | Form Feed Clear Screen Value
+System Equ   | XOFF         | $13           | Output Stream Hold Flag (^S)
+System Equ   | ESC          | $1B           | Escape Sequence Opcode Tracker
+System Equ   | CHOME        | $1C           | Screen Cursor Reset Home Offset
+System Equ   | SPAC         | $20           | Blank Space Literal Padding Byte
+System Equ   | DEL          | $7F           | Terminal Delete Destructive Clear
+System Equ   | DECMRK       | '£'           | Prefix Code for Decimal Handling
+System Equ   | PROMPT       | '*'           | Standard Supervisor Input Mark
+System Equ   | JUMP         | $C3           | Z80 JP Absolute Opcode Template
+System Equ   | BRK          | $FF           | Breakpoint Trap Vector Instruction
+System Equ   | BUFSIZ       | 80            | Maximum Storage Line Dimension
+System Equ   | NBP          | 8             | Dynamic Target Breakpoint Limit
+System Equ   | DEFLEN       | 127           | Base Screen Data Hex Dump Span
+System Equ   | MONORG       | $F800         | Core System Entry Rom Window Base
+System Equ   | MONPAG       | $F8           | Upper ROM Memory Allocation Frame
+System Equ   | EDIT         | $F7FD         | Firmware Editor Entry Link Vector
+System Equ   | PASCAL       | $08000        | Main Operating Frame Target Offset
+System Equ   | TRACE        | $F000         | Environment Diagnostic Engine Base
+System Equ   | MMOUT        | $D400         | Screen Video Latch Write Pipeline
+System Equ   | MMINIT       | $D700         | Video Core Initialisation Hook
+-------------+--------------+---------------+-----------------------------------
+RAM Memory   | IOBYTE       | $0003         | System Configuration Map Element
+RAM Memory   | RST7         | $0038         | Interrupt Trap Entry Array Vector
+RAM Memory   | CHBUFF       | $0040         | Hardware Keyboard Buffer Register
+RAM Memory   | CURPOS       | $0041         | Display Text Row Tracking Tracker
+RAM Memory   | CHCNT        | $0042         | Console Stream Position Latch
+RAM Memory   | PRMP         | $0043         | Prompt Column Coordinates Record
+RAM Memory   | BUFAD        | $0044         | Active Data Array Dynamic Base
+RAM Memory   | BUFPTR       | $0046         | Buffer Parse Increment Pointer
+RAM Memory   | TOPRAM       | $0048         | Discovered Upper System Limit Bound
+RAM Memory   | PAR1         | $004A         | Token Parameter Core Register 1
+RAM Memory   | PAR2         | $004C         | Token Parameter Core Register 2
+RAM Memory   | NPARS        | $004E         | Numerical Argument Parser Tracker
+RAM Memory   | BPTAB        | $0051         | Breakpoint Operational Workspace
+RAM Memory   | ISAV         | $006A         | Preserved System CPU Register I
+RAM Memory   | AFSAV        | $006C         | Preserved System CPU Registers AF
+RAM Memory   | BCSAV        | $006E         | Preserved System CPU Registers BC
+RAM Memory   | DESAV        | $0070         | Preserved System CPU Registers DE
+RAM Memory   | HLSAV        | $0072         | Preserved System CPU Registers HL
+RAM Memory   | IXSAV        | $0074         | Preserved System CPU Register IX
+RAM Memory   | IYSAV        | $0076         | Preserved System CPU Register IY
+RAM Memory   | SPSAV        | $0078         | Preserved System Stack Pointer SP
+RAM Memory   | PCSAV        | $007A         | Preserved System Program Counter PC
+RAM Memory   | DISPAD       | $007C         | Core Visual Hex Stream Location
+RAM Memory   | NXTCH        | $007E         | Streaming Queue Input Lookahead
+RAM Memory   | PRNTSW       | $007F         | Print Destination Logic Toggle
+RAM Memory   | LOCKSW       | $0080         | Keyboard Alpha-Lock Translation Sw
+RAM Memory   | INBUFF       | $008F         | Dynamic Parsing Source Buffer Base
+-------------+--------------+---------------+-----------------------------------
+Code Routine | TRUMP        | $F800         | Primary Hardware Power-On Vector
+Code Routine | PON          | Core Target   | Cold Boot Initialization Subsystem
+Code Routine | CLRTAB       | Loop Label    | Clear Active Breakpoints Array
+Code Routine | CLRREG       | Loop Label    | Zero CPU Workspace Register Cache
+Code Routine | TESTM        | Routine Entry | RAM Diagnostics Scan Module Base
+Code Routine | TESTM1       | Loop Label    | High/Low Pattern Integrity Verification
+Code Routine | MERR         | Branch Entry  | Diagnostic Fail and Boundary Capture
+Code Routine | CONST        | Routine Entry | Input Polling Device Scanner Base
+Code Routine | ACONST       | Routine Entry | Direct Interface Line Evaluation
+Code Routine | EXCONS       | Exit Point    | Register Restore Matrix Terminal
+Code Routine | KEYP         | Routine Entry | Keyboard Handler Vector Trigger
+Code Routine | KRDY         | Branch Entry  | Input Acknowledge Assert Routine
+Code Routine | RSST         | $F882         | Handshake Matrix Link Status Pass
+Code Routine | RSIN         | Routine Entry | Serial Console Polling Pipeline
+Code Routine | CONIN        | Routine Entry | High-Level Input Stream Handler
+Code Routine | CASLOC       | $F8A0         | Parity/Shift Process Filter Entry
+Code Routine | UCMASK       | Subroutine    | Lowercase Translation Logic Filter
+Code Routine | TAPE         | Routine Entry | Cassette Port Synchronisation Frame
+Code Routine | CONOUT       | Routine Entry | Master System Display Controller
+Code Routine | TABON        | Loop Label    | Horizontal Character Grid Multiplier
+Code Routine | DISCH        | Routine Entry | Absolute Channel Stream Trigger
+Code Routine | CHOUT        | Routine Entry | Core Filter and Device Routing Map
+Code Routine | ZERCNT       | Routine Entry | Local Line Parameter Clear Module
+Code Routine | BACK         | Routine Entry | Column Tracking Decrement Pipeline
+Code Routine | ACONOUT      | Routine Entry | Port Selector Output Multiplexer
+Code Routine | VDUOUT       | Routine Entry | Local Visual Terminal Write Trigger
+Code Routine | HOME         | Routine Entry | Cursor Field Variable Reset Vector
+Code Routine | CHAR0        | Routine Entry | Screen Coordinate Zero Routine
+Code Routine | VDUDEL       | Routine Entry | Visual Step Execution Timing Loop
+Code Routine | RESTRI       | Exit Point    | Execution Context Restore Terminal
+Code Routine | NOHOME       | Branch Entry  | Command Character Interval Delay
+Code Routine | US80         | Branch Entry  | Hardware Frequency Profiler Check
+Code Routine | US40         | Loop Label    | 4MHz Short Pipeline Delay Loop
+Code Routine | DBMS         | Routine Entry | Master Timing Generation Module
+Code Routine | DIMS         | Routine Entry | Clock Cycle Calculation Matrix
+Code Routine | DLOOP        | Loop Label    | Core Millisecond Delay Countdown
+Code Routine | RSSTK        | Routine Entry | Transmit Buffer Empty Wait Loop
+Code Routine | MMSTK        | Routine Entry | Screen Memory Route Interface Hook
+Code Routine | LIST         | Routine Entry | Parallel Print Interface Driver
+Code Routine | WTPHS        | Loop Label    | Print Handshake Clear Polling Loop
+Code Routine | PUNHL        | Routine Entry | Dual Byte Output Tape Interface
+Code Routine | PUNCH        | Routine Entry | Serial Bitstream Transmit Port
+Code Routine | PUNCH1       | Loop Label    | Transmission Buffer Free Check Loop
+Code Routine | READER       | Routine Entry | Cassette Bitstream Read Pipeline
+Code Routine | GETBUF       | Routine Entry | Input Workspace Array Array Binder
+-------------+--------------+---------------+-----------------------------------
+Data Storage | FLGTAB       | Memory Table  | Flag Names and Bitmask Descriptors
+Data Storage | REGTAB       | Data String   | Register Code Index Search Array
+Data Storage | SGNON        | Text Header   | Monitor Boot Screen Welcome Message
+Data Storage | TPROMP       | Text String   | File Directory Match Header
+Data Storage | ALLSET       | Text String   | Process Successful Message String
+Data Storage | REGHDR       | Text String   | Snapshot Layout Formatting Matrix
+================================================================================
