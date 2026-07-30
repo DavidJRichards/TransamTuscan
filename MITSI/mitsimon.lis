@@ -134,7 +134,7 @@ f803
 f803 31 00 01		PON:        LD      SP,MONSTK       ; Line 0128 ; Load supervisor tracking stack 
 f806 3e c3		            LD      A,JUMP          ; Line 0129 ; Build dynamic redirection jump 
 f808 32 38 00		            LD      (RST7),A        ; Line 0130 ; Inject JP opcode to vector at $0038 
-f80b 21 9a fc		            LD      HL,MONLP        ; Line 0131 ; Target address is supervisor loop 
+f80b 21 99 fc		            LD      HL,MONLP        ; Line 0131 ; Target address is supervisor loop 
 f80e 22 39 00		            LD      (RST7+1),HL     ; Line 0132 ; Complete the absolute jump injection 
 f811 db 04		            IN      A,(IOSEL)       ; Line 0133 ; Pull peripheral line settings 
 f813 32 03 00		            LD      (IOBYTE),A      ; Line 0134 ; Establish initial state of IOBYTE 
@@ -162,8 +162,8 @@ f82c 23			            INC     HL              ; Line 0147
 f82d 10 fc		            DJNZ    CLRREG          ; Line 0148 ; Loop until entire cache footprint is zero 
 f82f 2f			            CPL                     ; Line 0149 ; Bring accumulator to high logic level 
 f830 d3 07		            OUT     (PRINTST),A     ; Line 0150 ; Set Centronics printer strobe high 
-f832 11 a5 ff		            LD      DE,SGNON        ; Line 0151 ; Load address of welcome message 
-f835 cd ae fa		            CALL    BUFFCR          ; Line 0152 ; Display banner and print line break 
+f832 11 a4 ff		            LD      DE,SGNON        ; Line 0151 ; Load address of welcome message 
+f835 cd ad fa		            CALL    BUFFCR          ; Line 0152 ; Display banner and print line break 
 f838 2e 00		            LD      L,$00           ; Line 0153 ; Begin systemic RAM check process 
 f83a 46			TESTM:      LD      B,(HL)          ; Line 0154 ; Read original memory contents 
 f83b 97			            SUB     A               ; Line 0155 ; Clear variable state index tracking 
@@ -268,7 +268,7 @@ f8c2			; -----------------------------------------------------------------------
 f8c2			; TAPE CASSETTE PERIPHERAL DRIVERS 
 f8c2			; ------------------------------------------------------------------------------ 
 f8c2 cd 4e f8		TAPE:       CALL    CONST           ; Line 0262 ; Check console line for dynamic abort 
-f8c5 cd d4 f9		            CALL    READER          ; Line 0263 ; Pull active data byte from interface 
+f8c5 cd d3 f9		            CALL    READER          ; Line 0263 ; Pull active data byte from interface 
 f8c8 47			            LD      B,A             ; Line 0264 ; Cache byte value 
 f8c9 db 02		            IN      A,(TAPES)       ; Line 0265 ; Query tape controller UART status register 
 f8cb e6 0e		            AND     $0E             ; Line 0266 ; Mask framing, parity, and overrun flags 
@@ -276,1152 +276,1152 @@ f8cd 78			            LD      A,B             ; Line 0267 ; Restore tape data by
 f8ce c8			            RET     Z               ; Line 0268 ; Return with data if no errors present 
 f8cf 3e 3f		            LD      A,'?'           ; Line 0269 ; Initialize error notification flag 
 f8d1 32 4a 00		            LD      (PAR1),A        ; Line 0270 ; Update tracking cache interface state 
-f8d4 c9			            RET                     ; Line 0272  
-f8d5			;snip 
-f8d5			; ============================================================================== 
-f8d5			; Z80 ASSEMBLY SOURCE CODE - PART 6 OF 8 
-f8d5			; Source: MITSI Monitor for Tuscan System 1 
-f8d5			; Target Assembler: z80asm / z88dk 
-f8d5			; ============================================================================== 
-f8d5			 
-f8d5			; ------------------------------------------------------------------------------ 
-f8d5			; CONOUT - OUTPUT CHARACTER TO USERS CONSOLE 
-f8d5			; ------------------------------------------------------------------------------ 
-f8d5 d9			CONOUT:     EXX                     ; Line 0278 ; Swap to alternate registers 
-f8d6 f5			            PUSH    AF              ; Line 0279 ; Save output character 
-f8d7 fe 09		            CP      TAB             ; Line 0280 ; Is it a horizontal tab? 
-f8d9 20 0c		            JR      NZ,DISCH        ; Line 0281 ; No, output char directly 
-f8db 3e 20		TABON:      LD      A,SPAC          ; Line 0282 ; Load space character 
-f8dd cd ed f8		            CALL    CHOUT           ; Line 0283 ; Output space 
-f8e0 3a 42 00		            LD      A,(CHCNT)       ; Line 0284 ; Check current cursor position 
-f8e3 e6 07		            AND     7               ; Line 0285 ; Is it a multiple of 8? 
-f8e5 20 f4		            JR      NZ,TABON        ; Line 0286 ; No, continue expanding tabs 
-f8e7 cd ed f8		DISCH:      CALL    CHOUT           ; Line 0287 ; Send character to output device 
-f8ea f1			            POP     AF              ; Line 0288 ; Restore character 
-f8eb d9			            EXX                     ; Line 0289 ; Restore original registers 
-f8ec c9			            RET                     ; Line 0290  
-f8ed			 
-f8ed 4f			CHOUT:      LD      C,A             ; Line 0292 ; Cache character in C 
-f8ee cd 4e f8		            CALL    CONST           ; Line 0293 ; Check for pause requests (^S) 
-f8f1 79			            LD      A,C             ; Line 0294 ; Restore character 
-f8f2 cd 20 f9		            CALL    ACONOUT         ; Line 0295 ; Write to primary console hardware 
-f8f5 3a 7c 00		            LD      A,(PRNTSW)      ; Line 0296 ; Check external printer routing switch 
-f8f8 a7			            AND     A               ; Line 0297 ; Is the printer stream active? 
-f8f9 79			            LD      A,C             ; Line 0298 ; Restore character 
-f8fa c4 a4 f9		            CALL    NZ,LIST         ; Line 0299 ; If active, mirror stream to printer 
-f8fd 21 42 00		            LD      HL,CHCNT        ; Line 0300 ; Pointer to stream column counter 
-f900 fe 0a		            CP      LF              ; Line 0301 ; Is it a line feed? 
-f902 28 17		            JR      Z,ZERCNT        ; Line 0302 ; Reset column count if so 
-f904 fe 08		            CP      BS              ; Line 0303 ; Is it a backspace? 
-f906 28 16		            JR      Z,BACK          ; Line 0304 ; Decrement counter if so 
-f908 a7			            AND     A               ; Line 0305 ; Is it a null character? 
-f909 c8			            RET     Z               ; Line 0306 ; Ignore nulls 
-f90a fe 04		            CP      EOT             ; Line 0307 ; Is it end-of-transmission? 
-f90c c8			            RET     Z               ; Line 0308 ; Ignore EOTs 
-f90d e6 ef		            AND     $EF             ; Line 0309 ; Mask code space bits 
-f90f d6 0d		            SUB     CR              ; Line 0310 ; Is it a carriage return? 
-f911 28 08		            JR      Z,ZERCNT        ; Line 0311 ; Reset counter 
-f913 3d			            DEC     A               ; Line 0312 ; Is it an escape character? 
-f914 28 05		            JR      Z,ZERCNT        ; Line 0313 ; Reset counter 
-f916 3d			            DEC     A               ; Line 0314 ; Is it form feed or home cursor? 
-f917 28 02		            JR      Z,ZERCNT        ; Line 0315 ; Reset counter 
-f919 34			            INC     (HL)            ; Line 0316 ; Regular printable character, increment count 
-f91a c9			            RET                     ; Line 0317  
-f91b 36 00		ZERCNT:     LD      (HL),0          ; Line 0318 ; Clear column counter 
-f91d c9			            RET                     ; Line 0319  
-f91e 35			BACK:       DEC     (HL)            ; Line 0320 ; Step column counter back one step 
-f91f c9			            RET                     ; Line 0321  
-f920			 
-f920 c5			ACONOUT:    PUSH    BC              ; Line 0323 ; Save work registers 
-f921 3a 03 00		            LD      A,(IOBYTE)      ; Line 0324 ; Read global I/O allocation mapping 
-f924 e6 30		            AND     $30             ; Line 0325 ; Extract console parameters 
-f926 28 66		            JR      Z,RSSTK         ; Line 0326 ; Route to serial line if zero 
-f928 fe 30		            CP      $30             ; Line 0327 ; Is it a memory-mapped display layout? 
-f92a 28 73		            JR      Z,MMSTK         ; Line 0328 ; Route to memory-mapped VDU if so 
-f92c			;snip 
-f92c			; ============================================================================== 
-f92c			; Z80 ASSEMBLY SOURCE CODE - PART 7 OF 8 
-f92c			; Source: MITSI Monitor for Tuscan System 1 
-f92c			; Target Assembler: z80asm / z88dk 
-f92c			; ============================================================================== 
-f92c			 
-f92c 3d			VDUOUT:     DEC     A               ; Line 0329  
-f92d e6 7f		            AND     $7F             ; Line 0330 ; Bring strobe line low 
-f92f d3 02		            OUT     (VDU),A         ; Line 0331  
-f931 f6 80		            OR      $80             ; Line 0332 ; Pull strobe line high 
-f933 d3 02		            OUT     (VDU),A         ; Line 0333  
-f935 e6 7f		            AND     $7F             ; Line 0334 ; Clear strobe back to low 
-f937 d3 02		            OUT     (VDU),A         ; Line 0335  
-f939 fe 0c		            CP      FF              ; Line 0336 ; Is it a Form Feed command? 
-f93b 20 0b		            JR      NZ,NOHOME       ; Line 0337  
-f93d 06 84		HOME:       LD      B,132           ; Line 0338 ; Load 132ms padding delay value 
-f93f 97			CHAR0:      SUB     A               ; Line 0339 ; Reset accumulator to 0 
-f940 32 41 00		            LD      (CURPOS),A      ; Line 0340 ; Zero VDU screen cursor position 
-f943 cd 79 f9		VDUDEL:     CALL    DBMS            ; Line 0341 ; Process execution timing delay 
-f946 c1			RESTRI:     POP     BC              ; Line 0342 ; Restore workspace registers 
-f947 c9			            RET                     ; Line 0343  
-f948 fe 0d		NOHOME:     CP      CR              ; Line 0344 ; Is it a Carriage Return? 
-f94a 06 0f		            LD      B,15            ; Line 0345 ; Load 15ms command execution delay 
-f94c 28 f1		            JR      Z,CHAR0         ; Line 0346  
-f94e 79			            LD      A,C             ; Line 0347 ; Retrieve cached character byte 
-f94f a7			            AND     A               ; Line 0348 ; Check for non-printing null character 
-f950 28 17		            JR      Z,US80          ; Line 0349  
-f952 fe 04		            CP      EOT             ; Line 0350 ; Is it an End of Transmission character? 
-f954 28 13		            JR      Z,US80          ; Line 0351  
-f956 fe 0a		            CP      LF              ; Line 0352 ; Is it a Line Feed character? 
-f958 28 e9		            JR      Z,VDUDEL        ; Line 0353 ; Branch to timing padding delay routine 
-f95a fe 1b		            CP      ESC             ; Line 0354 ; Is it an Escape character? 
-f95c 28 e5		            JR      Z,VDUDEL        ; Line 0355 ; Branch to loop delay for screen scrolling 
-f95e 3a 41 00		            LD      A,(CURPOS)      ; Line 0356 ; Load current screen column index 
-f961 3c			            INC     A               ; Line 0357  
-f962 fe 40		            CP      64              ; Line 0358 ; Does row reach terminal boundary (64 chars)? 
-f964 28 d9		            JR      Z,CHAR0         ; Line 0359 ; Yes, execute automatic CRLF loop reset 
-f966 32 41 00		            LD      (CURPOS),A      ; Line 0360 ; Update tracking index register cache 
-f969 3a 03 00		US80:       LD      A,(IOBYTE)      ; Line 0361 ; Check CPU clock configuration settings 
-f96c e6 30		            AND     $30             ; Line 0362  
-f96e fe 20		            CP      $20             ; Line 0363 ; Is system running at 4MHz speed? 
-f970 20 d4		            JR      NZ,RESTRI       ; Line 0364 ; 2MHz profile, skip extra loop padding 
-f972 3e 08		            LD      A,8             ; Line 0365 ; Initialize ~40 microseconds loop counter 
-f974 3d			US40:       DEC     A               ; Line 0366  
-f975 20 fd		            JR      NZ,US40         ; Line 0367  
-f977 18 cd		            JR      RESTRI          ; Line 0368  
-f979			 
-f979			; ------------------------------------------------------------------------------ 
-f979			; DBMS - MULTI-SPEED MILLISECOND DELAY GENERATOR LOOP 
-f979			; ------------------------------------------------------------------------------ 
-f979 f5			DBMS:       PUSH    AF              ; Line 0370  
-f97a 3a 03 00		DIMS:       LD      A,(IOBYTE)      ; Line 0371  
-f97d e6 30		            AND     $30             ; Line 0372 ; Isolate speed metrics bits 
-f97f fe 20		            CP      $20             ; Line 0373 ; Is it 4MHz operation? 
-f981 3e f6		            LD      A,246           ; Line 0374 ; Load counter state value for 4MHz 
-f983 28 02		            JR      Z,DLOOP         ; Line 0375  
-f985 3e 79		            LD      A,121           ; Line 0376 ; Load counter state value for 2MHz 
-f987 3d			DLOOP:      DEC     A               ; Line 0377  
-f988 20 fd		            JR      NZ,DLOOP        ; Line 0378  
-f98a 10 ee		            DJNZ    DIMS            ; Line 0379 ; Loop through execution blocks B times 
-f98c f1			            POP     AF              ; Line 0380  
-f98d c9			            RET                     ; Line 0381  
-f98e			 
-f98e db 06		RSSTK:      IN      A,(RSHS)        ; Line 0383 ; Read serial handshake line state 
-f990 e6 01		            AND     $01             ; Line 0384  
-f992 28 fa		            JR      Z,RSSTK         ; Line 0385 ; Wait if hardware interface states busy 
-f994 db 00		            IN      A,(RSS)         ; Line 0386 ; Pull UART internal buffer flags 
-f996 e6 10		            AND     $10             ; Line 0387 ; Check Transmitter Buffer Empty flag 
-f998 28 f4		            JR      Z,RSSTK         ; Line 0388 ; Loop if transmit shift path full 
-f99a 79			            LD      A,C             ; Line 0389 ; Retrieve cached data byte 
-f99b d3 00		            OUT     (RSDO),A        ; Line 0390 ; Route byte out to RS232 port interface 
-f99d c1			            POP     BC              ; Line 0391  
-f99e c9			            RET                     ; Line 0392  
-f99f			 
-f99f cd 00 d4		MMSTK:      CALL    MMOUT           ; Line 0394 ; Route to custom memory mapped display driver 
-f9a2 c1			            POP     BC              ; Line 0395  
-f9a3 c9			            RET                     ; Line 0396  
-f9a4			 
-f9a4 c5			LIST:       PUSH    BC              ; Line 0403  
-f9a5 4f			            LD      C,A             ; Line 0404  
-f9a6 3a 03 00		            LD      A,(IOBYTE)      ; Line 0405 ; Read current configuration vector 
-f9a9 e6 c0		            AND     $C0             ; Line 0406 ; Extract destination printer stream codes 
-f9ab 28 e1		            JR      Z,RSSTK         ; Line 0407 ; Route to serial data line channel 
-f9ad fe 40		            CP      $40             ; Line 0408 ; Is onboard VDU terminal designated? 
-f9af ca 2c f9		            JP      Z,VDUOUT        ; Line 0409 ; Jump directly to active hardware output 
-f9b2 db 07		WTPHS:      IN      A,(PRINTHS)     ; Line 0410 ; Query parallel hardware interface pin status 
-f9b4 e6 01		            AND     $01             ; Line 0411  
-f9b6 20 fa		            JR      NZ,WTPHS        ; Line 0412 ; Wait if Centronics printer line busy 
-f9b8 79			            LD      A,C             ; Line 0413 ; Load data byte 
-f9b9 d3 03		            OUT     (PRINT),A       ; Line 0414 ; Write character to printer data lines 
-f9bb af			            XOR     A               ; Line 0415  
-f9bc d3 07		            OUT     (PRINTST),A     ; Line 0416 ; Bring print data strobe line low 
-f9be 2f			            CPL                     ; Line 0417  
-f9bf d3 07		            OUT     (PRINTST),A     ; Line 0418 ; Return printer strobe to high level 
-f9c1 79			            LD      A,C             ; Line 0419  
-f9c2 c1			            POP     BC              ; Line 0420  
-f9c3 c9			            RET                     ; Line 0421  
-f9c4			; snip 
-f9c4			; ============================================================================== 
-f9c4			; Z80 ASSEMBLY SOURCE CODE - PART 8 OF 8 (FINAL SECTION) 
-f9c4			; Source: MITSI Monitor for Tuscan System 1 
-f9c4			; Target Assembler: z80asm / z88dk 
-f9c4			; ============================================================================== 
-f9c4			 
-f9c4			; ------------------------------------------------------------------------------ 
-f9c4			; PUNHL - OUTPUT THE DOUBLE BYTE IN HL TO TAPE 
-f9c4			; ------------------------------------------------------------------------------ 
-f9c4 7d			PUNHL:      LD      A,L             ; Line 0428 ; Send low byte <L> first 
-f9c5 cd c9 f9		            CALL    PUNCH           ; Line 0429  
-f9c8 7c			            LD      A,H             ; Line 0430 ; Prepare high byte <H> next 
-f9c9			                                    ; Line 0431 ; Fall straight into PUNCH 
-f9c9			 
-f9c9			; ------------------------------------------------------------------------------ 
-f9c9			; PUNCH - OUTPUT BYTE TO MODEM (TAPE DATA LINK) 
-f9c9			; ------------------------------------------------------------------------------ 
-f9c9 f5			PUNCH:      PUSH    AF              ; Line 0437 ; Cache target output data byte 
-f9ca db 02		PUNCH1:     IN      A,(TAPES)       ; Line 0438 ; Pull tape control status register 
-f9cc e6 10		            AND     $10             ; Line 0439 ; Is Transmitter Buffer Empty true? 
-f9ce 28 fa		            JR      Z,PUNCH1        ; Line 0440 ; Loop if transmit channel is busy 
-f9d0 f1			            POP     AF              ; Line 0441 ; Restore target data byte 
-f9d1 d3 01		            OUT     (TAPEDO),A      ; Line 0442 ; Send byte to serial tape output port 
-f9d3 c9			            RET                     ; Line 0443  
-f9d4			 
-f9d4			; ------------------------------------------------------------------------------ 
-f9d4			; READER - ROUTINE TO EXTRACT DATA BYTE FROM MODEM LINK 
-f9d4			; ------------------------------------------------------------------------------ 
-f9d4 db 02		READER:     IN      A,(TAPES)       ; Line 0450 ; Read tape serial link status flags 
-f9d6 e6 01		            AND     $01             ; Line 0451 ; Is Data Available flag asserted? 
-f9d8 28 fa		            JR      Z,READER        ; Line 0452 ; Loop until link receive latch completes 
-f9da db 03		            IN      A,(TAPEDI)      ; Line 0453 ; Pull waiting byte from hardware port 
-f9dc c9			            RET                     ; Line 0454  
-f9dd			 
-f9dd			; ------------------------------------------------------------------------------ 
-f9dd			; GETBUF - INITIALIZE AND HOOK LINE INPUT WORKING BUFFER Footprint 
-f9dd			; ------------------------------------------------------------------------------ 
-f9dd 11 86 00		GETBUF:     LD      DE,INBUFF+1     ; Line 0462 ; Establish structural pointer to text zone 
-f9e0 ed 53 46 00	            LD      (BUFPTR),DE     ; Line 0463 ; Reset working scan tracking register pointer 
-f9e4 1b			            DEC     DE              ; Line 0464  
-f9e5 3e 50		            LD      A,BUFSIZ        ; Line 0465 ; Load maximum baseline buffer size 
-f9e7 12			            LD      (DE),A          ; Line 0466 ; Write length byte limit descriptor into array 
-f9e8			;add missing 
-f9e8			; ============================================================================== 
-f9e8			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART A 
-f9e8			; Core Function: Console Line Buffer Entry, Delete, and Controls 
-f9e8			; ============================================================================== 
-f9e8			 
-f9e8			; ------------------------------------------------------------------------------ 
-f9e8			; BUFFIN - ROUTINE TO READ A LINE INTO AN INPUT BUFFER 
-f9e8			; ------------------------------------------------------------------------------ 
-f9e8 eb			BUFFIN:     EX      DE,HL           ; Line 0484 ; HL=PTR TO BUFFER 
-f9e9 4e			            LD      C,(HL)          ; Line 0485 ; C=MAX BUFFER LENGTH 
-f9ea 0d			            DEC     C               ; Line 0486 ; ALLOW FOR <CR> 
-f9eb 3a 42 00		            LD      A,(CHCNT)       ; Line 0487 ; GET END OF PROMPT POS 
-f9ee 32 43 00		            LD      (PRMP),A        ; Line 0488 ; REMEMBER IT FOR DELTAB 
-f9f1 22 44 00		            LD      (BUFAD),HL      ; Line 0489 ; PTR TO TEXT AREA 
-f9f4 06 00		LINLOOP:    LD      B,0             ; Line 0490 ; B=CURRENT LENGTH=0 
-f9f6 cd 8a f8		CHLOOP:     CALL    CONIN           ; Line 0491 ; GET CHARACTER 
-f9f9 fe 0a		            CP      LF              ; Line 0492 ; LF? 
-f9fb 28 59		            JR      Z,GOTBUF        ; Line 0493 ; YES, DONE 
-f9fd fe 0d		            CP      CR              ; Line 0494 ; CR? 
-f9ff 28 55		            JR      Z,GOTBUF        ; Line 0495 ; YES, DONE 
-fa01 fe 7f		            CP      DEL             ; Line 0496 ; DELETE? 
-fa03 20 10		            JR      NZ,NODEL        ; Line 0497  
-fa05 78			DELET:      LD      A,B             ; Line 0498 ; GET CURRENT BUFF LENGTH 
-fa06 b7			            OR      A               ; Line 0499 ; =0? 
-fa07 28 ed		            JR      Z,CHLOOP        ; Line 0500 ; YES, IGNORE 
-fa09 7e			            LD      A,(HL)          ; Line 0501 ; GET CHAR TO DELETE 
-fa0a 05			            DEC     B               ; Line 0502 ; BACKUP CTR & PTR 
-fa0b 2b			            DEC     HL              ; Line 0503  
-fa0c e5			            PUSH    HL              ; Line 0504  
-fa0d c5			            PUSH    BC              ; Line 0505  
-fa0e cd 5a fa		            CALL    DELETE          ; Line 0506 ; DO DELETION 
-fa11 c1			            POP     BC              ; Line 0507  
-fa12 e1			            POP     HL              ; Line 0508  
-fa13 18 e1		            JR      CHLOOP          ; Line 0509 ; GET REPLACEMENT 
-fa15 fe 08		NODEL:      CP      BS              ; Line 0510 ; BS? 
-fa17 28 ec		            JR      Z,DELET         ; Line 0511 ; TREAT AS DELETE 
-fa19 fe 15		            CP      $15             ; Line 0512 ; ^U? 
-fa1b 20 11		            JR      NZ,NOCAN        ; Line 0513 ; NO 
-fa1d 3a 43 00		LINDEL:     LD      A,(PRMP)        ; Line 0514 ; FIND PROMPT POSITION 
-fa20 21 42 00		            LD      HL,CHCNT        ; Line 0515 ; PTR TO CURSOR NOW 
-fa23 be			            CP      (HL)            ; Line 0516 ; SAME? 
-fa24 2a 44 00		            LD      HL,(BUFAD)      ; Line 0517 ; RESET BUFFER PTR 
-fa27 30 cb		            JR      NC,LINLOOP      ; Line 0518  
-fa29 cd 97 fa		            CALL    ERA             ; Line 0519 ; NO, DELETE ONE CHAR 
-fa2c 18 ef		            JR      LINDEL          ; Line 0520  
-fa2e fe 10		NOCAN:      CP      $10             ; Line 0521 ; ^P? 
-fa30 20 08		            JR      NZ,NOTOG        ; Line 0522  
-fa32 11 7c 00		            LD      DE,PRNTSW       ; Line 0523 ; PTR TO SWITCH 
-fa35 1a			TOGSW:      LD      A,(DE)          ; Line 0524 ; GET IT 
-fa36 2f			            CPL                     ; Line 0525 ; TOGGLE IT 
-fa37 12			            LD      (DE),A          ; Line 0526  
-fa38 18 bc		            JR      CHLOOP          ; Line 0527 ; GET NEXT CHAR 
-fa3a fe 01		NOTOG:      CP      $01             ; Line 0528 ; ^A (ALPHA LOCK)? 
-fa3c 20 05		            JR      NZ,NOLOCK       ; Line 0529 ; NO 
-fa3e 11 7d 00		            LD      DE,LOCKSW       ; Line 0530 ; GET SWITCH 
-fa41 18 f2		            JR      TOGSW           ; Line 0531 ; TOGGLE SWITCH 
-fa43 23			NOLOCK:     INC     HL              ; Line 0532 ; MUST BE ORDINARY CHAR 
-fa44 77			            LD      (HL),A          ; Line 0533 ; SAVE IT IN BUFF 
-fa45 cd d5 f8		            CALL    CONOUT          ; Line 0534 ; ECHO CHAR 
-fa48 04			            INC     B               ; Line 0535 ; BUMP CTR 
-fa49 fe 03		            CP      ETX             ; Line 0536 ; ^C? 
-fa4b 78			            LD      A,B             ; Line 0537 ; FIRST CHARACTER? 
-fa4c 20 05		            JR      NZ,LENTST       ; Line 0538 ; NOT ^C 
-fa4e fe 01		            CP      1               ; Line 0539  
-fa50 ca 38 00		            JP      Z,RST7          ; Line 0540 ; RESTART IF SO 
-fa53 b9			LENTST:     CP      C               ; Line 0541 ; BUFFER FULL? 
-fa54 38 a0		            JR      C,CHLOOP        ; Line 0542 ; NO 
-fa56 23			GOTBUF:     INC     HL              ; Line 0543 ; PTR TO NEXT FREE 
-fa57 36 0d		            LD      (HL),CR         ; Line 0544 ; MARK END OF BUFFER 
-fa59 c9			            RET                     ; Line 0545  
-fa5a			 
-fa5a a7			DELETE:     AND     A               ; Line 0547 ; NULL? 
-fa5b c8			            RET     Z               ; Line 0548 ; IGNORE 
-fa5c fe 04		            CP      EOT             ; Line 0549 ; EOT? 
-fa5e c8			            RET     Z               ; Line 0550  
-fa5f 4f			            LD      C,A             ; Line 0551 ; SAVE CHAR 
-fa60 e6 ef		            AND     $EF             ; Line 0552 ; MASK OUT BIT 4 
-fa62 fe 0b		            CP      $0B             ; Line 0553 ; ESC? 
-fa64 c8			            RET     Z               ; Line 0554  
-fa65 fe 0c		            CP      FF              ; Line 0555  
-fa67 c8			            RET     Z               ; Line 0556  
-fa68 79			            LD      A,C             ; Line 0557 ; RESTORE CHAR 
-fa69 e1			            POP     HL              ; Line 0558 ; UNSTACK RETURN ADDR 
-fa6a c1			            POP     BC              ; Line 0559 ; TO GET AT BC 
-fa6b c5			            PUSH    BC              ; Line 0560 ; B = CHARS IN BUFFER 
-fa6c e5			            PUSH    HL              ; Line 0561 ; STACK RESTORED 
-fa6d 2a 44 00		            LD      HL,(BUFAD)      ; Line 0562 ; GET BUFFER ADDRESS 
-fa70 3a 43 00		            LD      A,(PRMP)        ; Line 0563 ; GET END OF PROMPT 
-fa73 4f			            LD      C,A             ; Line 0564 ; C=CURSOR POSITION AFTER DELETE 
-fa74 78			CALPOS:     LD      A,B             ; Line 0565 ; SEE IF MORE CHARS TO DELETE 
-fa75 a7			            AND     A               ; Line 0566  
-fa76 28 0b		            JR      Z,DELCNT        ; Line 0567 ; NO, SEE HOW FAR TO BS 
-fa78 23			            INC     HL              ; Line 0568 ; BUMP PTR 
-fa79 7e			            LD      A,(HL)          ; Line 0569 ; GET CHAR FROM BUFFER 
-fa7a 05			            DEC     B               ; Line 0570 ; DEC COUNT TO BE READ 
-fa7b 0c			            INC     C               ; Line 0571 ; BUMP NEW POSITION 
-fa7c fe 09		            CP      TAB             ; Line 0572 ; IS THIS A TAB? 
-fa7e cc 90 fa		            CALL    Z,TABPOS        ; Line 0573 ; YES, MOVE TO NEXT TAB 
-fa81 18 f1		            JR      CALPOS          ; Line 0574 ; YES 
-fa83 3a 42 00		DELCNT:     LD      A,(CHCNT)       ; Line 0575 ; GET OLD CURSOR POSITION 
-fa86 91			            SUB     C               ; Line 0576 ; SUBTRACT NEW, A = CHARS TO BACKUP 
-fa87 f5			ERACH:      PUSH    AF              ; Line 0577 ; BACK SPACE 
-fa88 cd 97 fa		            CALL    ERA             ; Line 0578  
-fa8b f1			            POP     AF              ; Line 0579  
-fa8c 3d			            DEC     A               ; Line 0580 ; UNTIL A=0 
-fa8d 20 f8		            JR      NZ,ERACH        ; Line 0581  
-fa8f c9			            RET                     ; Line 0582  
-fa90			 
-fa90 79			TABPOS:     LD      A,C             ; Line 0583 ; GET CURSOR POSITION 
-fa91 e6 f8		            AND     $F8             ; Line 0584 ; STRIP OFF LS 3 BITS 
-fa93 c6 08		            ADD     A,8             ; Line 0585 ; MOVE TO NEXT TAB 
-fa95 4f			            LD      C,A             ; Line 0586  
-fa96 c9			            RET                     ; Line 0587  
-fa97 cd 9d fa		ERA:        CALL    BACKSP          ; Line 0588 ; BACKSPACE 
-fa9a cd 95 fc		            CALL    SPACE           ; Line 0589 ; SPACE TO ERASE 
-fa9d 3e 08		BACKSP:     LD      A,BS            ; Line 0590 ; BACKSPACE 
-fa9f c3 ed f8		            JP      CHOUT           ; Line 0591  
-faa2			 
-faa2 f5			BUFFOUT:    PUSH    AF              ; Line 0600  
-faa3 1a			BUFF1:      LD      A,(DE)          ; Line 0601 ; GET CHAR 
-faa4 cd d5 f8		            CALL    CONOUT          ; Line 0602 ; PRINT IT 
-faa7 13			            INC     DE              ; Line 0603 ; BUMP PTR 
-faa8 fe 04		            CP      EOT             ; Line 0604 ; END? 
-faaa 20 f7		            JR      NZ,BUFF1        ; Line 0605 ; NO 
-faac f1			            POP     AF              ; Line 0606  
-faad c9			            RET                     ; Line 0607  
-faae cd a2 fa		BUFFCR:     CALL    BUFFOUT         ; Line 0609 ; PRINT STRING 
-fab1 f5			CRLF:       PUSH    AF              ; Line 0618  
-fab2 3e 0d		            LD      A,CR            ; Line 0619  
-fab4 cd d5 f8		            CALL    CONOUT          ; Line 0620  
-fab7 3e 0a		            LD      A,LF            ; Line 0621  
-fab9 cd d5 f8		            CALL    CONOUT          ; Line 0622  
-fabc f1			            POP     AF              ; Line 0623  
-fabd c9			            RET                     ; Line 0624  
-fabe			;snip 
-fabe			; ============================================================================== 
-fabe			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART B1 OF 4 
-fabe			; Core Function: Tape System Layout Entry and Data File Export Channels 
-fabe			; ============================================================================== 
-fabe			 
-fabe			; ------------------------------------------------------------------------------ 
-fabe			; WRITE - FUNCTION TO SAVE A TARGET FILE TO TAPE STAGE LINK 
-fabe			; ------------------------------------------------------------------------------ 
-fabe cd 54 fc		WRITE:      CALL    PCHECK          ; Line 0632 ; Load parameters 1 and 2 
-fac1 fe 2c		            CP      ','             ; Line 0633 ; Verify comma separator holds 
-fac3 c2 df fb		WERR:       JP      NZ,PARER        ; Line 0634  
-fac6 3a 4e 00		            LD      A,(NPARS)       ; Line 0635 ; Verify exact argument volume count 
-fac9 fe 02		            CP      2               ; Line 0636  
-facb 20 f6		            JR      NZ,WERR         ; Line 0637  
-facd 2a 4c 00		            LD      HL,(PAR2)       ; Line 0638  
-fad0 eb			            EX      DE,HL           ; Line 0639 ; DE = End Address limit bounds 
-fad1 2a 46 00		            LD      HL,(BUFPTR)     ; Line 0640  
-fad4 44			            LD      B,H             ; Line 0641  
-fad5 4d			            LD      C,L             ; Line 0642 ; BC = Primary file identifier string 
-fad6 2a 4a 00		            LD      HL,(PAR1)       ; Line 0643 ; HL = Start Address origin point 
-fad9			 
-fad9 d5			FILOUT:     PUSH    DE              ; Line 0662 ; Cache file limit boundary address 
-fada cd 18 fb		            CALL    BLANK           ; Line 0663 ; Dump padding delay leader line tape 
-fadd 1e 40		            LD      E,64            ; Line 0664 ; Load structural block byte count 
-fadf 3e 0d		            LD      A,CR            ; Line 0665 ; Leader byte layout value token 
-fae1 cd c9 f9		OUTLDR:     CALL    PUNCH           ; Line 0666 ; Transmit leader tracking sequence 
-fae4 1d			            DEC     E               ; Line 0667  
-fae5 20 fa		            JR      NZ,OUTLDR       ; Line 0668 ; Loop until entire frame clears 
-fae7 af			            XOR     A               ; Line 0669 ; Clear terminal sync marker byte 
-fae8 cd c9 f9		            CALL    PUNCH           ; Line 0670  
-faeb c5			            PUSH    BC              ; Line 0671 ; Preserve file name string reference 
-faec 0a			GETLEN:     LD      A,(BC)          ; Line 0672 ; Extract description byte segment 
-faed 1c			            INC     E               ; Line 0673 ; Increment calculated text length counter 
-faee 03			            INC     BC              ; Line 0674  
-faef fe 0d		            CP      CR              ; Line 0675 ; End indicator discovered? 
-faf1 20 f9		            JR      NZ,GETLEN       ; Line 0676 ; Continue calculation until complete 
-faf3 1d			            DEC     E               ; Line 0677 ; Normalize text payload balance 
-faf4 7b			            LD      A,E             ; Line 0678  
-faf5 cd c9 f9		            CALL    PUNCH           ; Line 0679 ; Transmit header text string volume count 
-faf8 c1			            POP     BC              ; Line 0680 ; Restore directory lookup text link 
-faf9 0a			OUTHDR:     LD      A,(BC)          ; Line 0681 ; Read filename character segment 
-fafa cd c9 f9		            CALL    PUNCH           ; Line 0682 ; Transmit to system file record 
-fafd 03			            INC     BC              ; Line 0683  
-fafe 1d			            DEC     E               ; Line 0684 ; Continue processing block space characters 
-faff 20 f8		            JR      NZ,OUTHDR       ; Line 0685  
-fb01 3e 01		            LD      A,1             ; Line 0686 ; Identify system target file structure as absolute 
-fb03 cd c9 f9		            CALL    PUNCH           ; Line 0687  
-fb06 cd c4 f9		            CALL    PUNHL           ; Line 0688 ; Transmit starting address metadata field 
-fb09 e3			            EX      (SP),HL         ; Line 0689 ; Extract file ending address limit bound 
-fb0a cd c4 f9		            CALL    PUNHL           ; Line 0690 ; Transmit closing frame boundary 
-fb0d d1			            POP     DE              ; Line 0691 ; DE=Start Address, HL=End Address bounds 
-fb0e 1a			OUTDATA:    LD      A,(DE)          ; Line 0693 ; Extract data payload byte segment 
-fb0f cd c9 f9		            CALL    PUNCH           ; Line 0694 ; Write byte to audio stream layer 
-fb12 cd 25 fb		            CALL    DPCMP           ; Line 0695 ; Compare loop memory offset markers 
-fb15 13			            INC     DE              ; Line 0696  
-fb16 20 f6		            JR      NZ,OUTDATA      ; Line 0697 ; Loop until memory array maps fully 
-fb18			 
-fb18 c5			BLANK:      PUSH    BC              ; Line 0698  
-fb19 0e 28		            LD      C,40            ; Line 0699 ; Pad delay operational interval frame loop 
-fb1b 06 fa		D250:       LD      B,250           ; Line 0700  
-fb1d cd 79 f9		            CALL    DBMS            ; Line 0701 ; Run delay generator 
-fb20 0d			            DEC     C               ; Line 0702  
-fb21 20 f8		            JR      NZ,D250         ; Line 0703  
-fb23 c1			            POP     BC              ; Line 0704  
-fb24 c9			            RET                     ; Line 0705  
-fb25			 
-fb25 e5			DPCMP:      PUSH    HL              ; Line 0712 ; Preserve register values 
-fb26 b7			            OR      A               ; Line 0713 ; Clear Carry flag indicators 
-fb27 ed 52		            SBC     HL,DE           ; Line 0714 ; Execute word compare subtraction loop 
-fb29 e1			            POP     HL              ; Line 0715  
-fb2a c9			            RET                     ; Line 0716  
-fb2b			;snip 
-fb2b			; ============================================================================== 
-fb2b			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART B2 OF 4 
-fb2b			; Core Function: Tape Audio Demodulator Sync and File Import Loops 
-fb2b			; ============================================================================== 
-fb2b			 
-fb2b			; ------------------------------------------------------------------------------ 
-fb2b			; READ - FUNCTION TO RETRIEVE AND PARSE FILE PAYLOADS FROM TAPE 
-fb2b			; ------------------------------------------------------------------------------ 
-fb2b 2a 46 00		READ:       LD      HL,(BUFPTR)     ; Line 0732 ; Pull file lookup parameters 
-fb2e 44			            LD      B,H             ; Line 0733  
-fb2f 4d			            LD      C,L             ; Line 0734 ; Target file name string in BC 
-fb30			 
-fb30 60			FILIN:      LD      H,B             ; Line 0745 ; Match lookup index reference 
-fb31 69			            LD      L,C             ; Line 0746  
-fb32 22 44 00		            LD      (BUFAD),HL      ; Line 0747  
-fb35 11 b8 ff		            LD      DE,TPROMP       ; Line 0748 ; Print scan status banner 
-fb38 cd a2 fa		            CALL    BUFFOUT         ; Line 0749  
-fb3b cd b1 fa		GETFIL:     CALL    CRLF            ; Line 0750  
-fb3e 2a 44 00		            LD      HL,(BUFAD)      ; Line 0751 ; Restore active string pointer 
-fb41 06 20		GETLDR:     LD      B,32            ; Line 0752 ; Require 32 leader sync bytes 
-fb43 cd d4 f9		GETLD:      CALL    READER          ; Line 0753 ; Pull byte from tape interface 
-fb46 fe 0d		            CP      CR              ; Line 0754 ; Is leader code correct? 
-fb48 20 f7		            JR      NZ,GETLDR       ; Line 0755 ; Sync lost, re-initialize scan 
-fb4a 05			            DEC     B               ; Line 0756  
-fb4b 20 f6		            JR      NZ,GETLD        ; Line 0757 ; Confirm leader block matches 
-fb4d cd d4 f9		WAITMRK:    CALL    READER          ; Line 0758 ; Look for end-of-leader mark 
-fb50 a7			            AND     A               ; Line 0759 ; Is value zero (00H)? 
-fb51 20 fa		            JR      NZ,WAITMRK      ; Line 0760  
-fb53 cd d4 f9		            CALL    READER          ; Line 0761 ; Extract header length byte 
-fb56 47			            LD      B,A             ; Line 0762  
-fb57 cd d4 f9		GETHDR:     CALL    READER          ; Line 0763 ; Read tape filename character 
-fb5a cd d5 f8		            CALL    CONOUT          ; Line 0764 ; Print character to screen 
-fb5d be			            CP      (HL)            ; Line 0765 ; Match active search target? 
-fb5e 20 31		            JR      NZ,PRTHDR       ; Line 0766 ; Discrepancy found, dump frame 
-fb60 05			            DEC     B               ; Line 0767  
-fb61 23			            INC     HL              ; Line 0768 ; Advance parameter index pointer 
-fb62 20 f3		            JR      NZ,GETHDR       ; Line 0769 ; Loop until filename field ends 
-fb64 7e			            LD      A,(HL)          ; Line 0770 ; Verify clean closing parameter 
-fb65 fe 0d		            CP      CR              ; Line 0771  
-fb67 20 d2		            JR      NZ,GETFIL       ; Line 0772 ; Length error, drop back to loop 
-fb69 af			            XOR     A               ; Line 0773  
-fb6a 32 4a 00		            LD      (PAR1),A        ; Line 0774 ; Reset error status tracker flag 
-fb6d cd d4 f9		            CALL    READER          ; Line 0775 ; Discard file type descriptor 
-fb70 cd c2 f8		            CALL    TAPE            ; Line 0776 ; Pull load address low byte 
-fb73 6f			            LD      L,A             ; Line 0777  
-fb74 cd c2 f8		            CALL    TAPE            ; Line 0778 ; Pull load address high byte 
-fb77 67			            LD      H,A             ; Line 0779  
-fb78 e5			            PUSH    HL              ; Line 0780 ; Save memory load target vector 
-fb79 cd c2 f8		            CALL    TAPE            ; Line 0781 ; Pull file end boundary low byte 
-fb7c 5f			            LD      E,A             ; Line 0782  
-fb7d cd c2 f8		            CALL    TAPE            ; Line 0783 ; Pull file end boundary high byte 
-fb80 57			            LD      D,A             ; Line 0784  
-fb81 cd c2 f8		LDFIL:      CALL    TAPE            ; Line 0785 ; Read data payload byte segment 
-fb84 77			            LD      (HL),A          ; Line 0786 ; Write byte directly to system RAM 
-fb85 cd 25 fb		            CALL    DPCMP           ; Line 0787 ; Terminal boundaries reach parity? 
-fb88 23			            INC     HL              ; Line 0788 ; Advance memory writing pointer 
-fb89 20 f6		            JR      NZ,LDFIL        ; Line 0789 ; Repeat write until file ends 
-fb8b e1			            POP     HL              ; Line 0790 ; Restore starting address vector 
-fb8c 3a 4a 00		            LD      A,(PAR1)        ; Line 0791 ; Check checksum transmission status 
-fb8f a7			            AND     A               ; Line 0792 ; Evaluate flags matrix result 
-fb90 c9			            RET                     ; Line 0793  
-fb91 05			PRTHDR:     DEC     B               ; Line 0795 ; Complete stream dump sequence 
-fb92 28 a7		            JR      Z,GETFIL        ; Line 0796 ; Balance failed, jump to next file 
-fb94 cd d4 f9		            CALL    READER          ; Line 0797 ; Read remaining text byte field 
-fb97 cd d5 f8		            CALL    CONOUT          ; Line 0798 ; Flush character out to screen 
-fb9a 18 f5		            JR      PRTHDR          ; Line 0799 ; Complete line printout loop 
-fb9c			;snip 
-fb9c			; ============================================================================== 
-fb9c			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART B3 OF 4 
-fb9c			; Core Function: Character Scanner Parsing Loops and Validation Filters 
-fb9c			; ============================================================================== 
-fb9c			 
-fb9c e5			GETCH:      PUSH    HL              ; Line 0808  
-fb9d 2a 46 00		            LD      HL,(BUFPTR)     ; Line 0809 ; Extract active parsing line pointer 
-fba0 7e			            LD      A,(HL)          ; Line 0810 ; Pull targeted working character 
-fba1 23			            INC     HL              ; Line 0811 ; Advance token pointer to next element 
-fba2 22 46 00		            LD      (BUFPTR),HL     ; Line 0812 ; Save updated scan tracking address vector 
-fba5 e1			            POP     HL              ; Line 0813  
-fba6 c9			            RET                     ; Line 0814  
-fba7			 
-fba7			; ------------------------------------------------------------------------------ 
-fba7			; GETUCT - EXTRACT CHARACTER FROM STREAM AND VALIDATE TERMINATION LOGIC 
-fba7			; ------------------------------------------------------------------------------ 
-fba7 cd 9c fb		GETUCT:     CALL    GETCH           ; Line 0825 ; Extract byte from execution line buffer 
-fbaa cd b0 f8		            CALL    UCMASK          ; Line 0826 ; Translate value to uppercase spectrum 
-fbad fe 2c		TERM:       CP      ','             ; Line 0827 ; Delimiter character matched? 
-fbaf 37			            SCF                     ; Line 0828  
-fbb0 c8			            RET     Z               ; Line 0829 ; Return true with Carry active if comma found 
-fbb1 fe 0d		            CP      CR              ; Line 0830 ; End of text command line discovered? 
-fbb3 37			            SCF                     ; Line 0831  
-fbb4 c8			            RET     Z               ; Line 0832 ; Return true with Carry active if line finished 
-fbb5 fe 5e		            CP      '^'             ; Line 0833 ; Step-back navigational indicator discovered? 
-fbb7 37			            SCF                     ; Line 0834  
-fbb8 c8			            RET     Z               ; Line 0835 ; Return true with Carry active if backstep set 
-fbb9 3f			            CCF                     ; Line 0836 ; No match, reset Carry parameter state to zero 
-fbba c9			            RET                     ; Line 0837  
-fbbb			 
-fbbb cd a7 fb		GETDEC:     CALL    GETUCT          ; Line 0852 ; Extract character segment parameter 
-fbbe d8			            RET     C               ; Line 0853 ; Return immediately if boundary delimiter found 
-fbbf d6 30		DECCHK:     SUB     '0'             ; Line 0854 ; Strip decimal base formatting bias character code 
-fbc1 38 1c		            JR      C,PARER         ; Line 0855 ; Less than zero ascii, syntax exception error 
-fbc3 fe 0a		            CP      9+1             ; Line 0856 ; Check value limits boundaries 
-fbc5 3f			            CCF                     ; Line 0857  
-fbc6 d0			            RET     NC              ; Line 0858 ; Balanced value processed completely, return integer 
-fbc7 18 16		            JR      PARER           ; Line 0859  
-fbc9			 
-fbc9 cd a7 fb		GETHEX:     CALL    GETUCT          ; Line 0861 ; Retrieve tracking character text parameter 
-fbcc d8			            RET     C               ; Line 0862 ; Return instantly if line delimiter found 
-fbcd d6 30		HEXCHK:     SUB     '0'             ; Line 0863 ; Evaluate alphanumeric character layout parameters 
-fbcf 38 0e		            JR      C,PARER         ; Line 0864  
-fbd1 fe 0a		            CP      9+1             ; Line 0865  
-fbd3 3f			            CCF                     ; Line 0866  
-fbd4 d0			            RET     NC              ; Line 0867 ; Return value segment if digit matches 0-9 
-fbd5 d6 07		            SUB     'A'-'0'-10      ; Line 0868 ; Convert character formatting logic hex bias code 
-fbd7 fe 0a		            CP      10              ; Line 0869  
-fbd9 38 04		            JR      C,PARER         ; Line 0870 ; Value less than boundary index 'A' 
-fbdb fe 10		            CP      16              ; Line 0871 ; Verify upper bound limit index constraint 'F' 
-fbdd 3f			            CCF                     ; Line 0872  
-fbde d0			            RET     NC              ; Line 0873 ; Return converted integer character element 
-fbdf			;snip 
-fbdf			; ============================================================================== 
-fbdf			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART B4 OF 4 
-fbdf			; Core Function: Parameter Extraction, Error Buffers, and Target Parsing 
-fbdf			; ============================================================================== 
-fbdf			 
-fbdf			; ------------------------------------------------------------------------------ 
-fbdf			; PARER - ROUTINE TO DEAL WITH ERRORS IN PARAMETERS 
-fbdf			; ------------------------------------------------------------------------------ 
-fbdf 2a 46 00		PARER:      LD      HL,(BUFPTR)     ; Line 0889 ; PTR TO NEXT CHARACTER 
-fbe2 2b			            DEC     HL              ; Line 0890 ; BACK UP TO ERROR 
-fbe3 36 3f		            LD      (HL),'?'        ; Line 0891 ; MARK ERROR WITH '?' 
-fbe5 23			            INC     HL              ; Line 0892  
-fbe6 36 04		            LD      (HL),EOT        ; Line 0893 ; MARK END OF BUFFER 
-fbe8 11 86 00		            LD      DE,INBUFF+1     ; Line 0894 ; PTR TO INPUT LINE 
-fbeb cd a2 fa		            CALL    BUFFOUT         ; Line 0895 ; PRINT ERROR BUFFER 
-fbee ff			            RST     $38             ; Line 0896 ; RESTART MONITOR SUPERVISOR 
-fbef			 
-fbef cd 92 fc		MODPAR:     CALL    PRTASP          ; Line 0907 ; PRINT OLD PARAMETER & VALUE 
-fbf2			                                    ; Line 0908 ; FALL THROUGH TO READ NEW ONE 
-fbf2			 
-fbf2 cd dd f9		READPAR:    CALL    GETBUF          ; Line 0918 ; READ LINE FROM KEYBOARD 
-fbf5			                                    ; Line 0919 ; FALL THROUGH TO PARAM PARSER 
-fbf5			 
-fbf5			; ------------------------------------------------------------------------------ 
-fbf5			; PARAM - SR TO LOAD A 16 BIT PARAMETER INTO HL 
-fbf5			; ------------------------------------------------------------------------------ 
-fbf5 cd a7 fb		PARAM:      CALL    GETUCT          ; Line 0934 ; GET CHARACTER 
-fbf8 21 00 00		            LD      HL,0            ; Line 0935 ; DEFAULT VALUE TO 0000 
-fbfb d8			            RET     C               ; Line 0936 ; TERMINATOR FOUND 
-fbfc fe 27		            CP      39; '\''            ; Line 0937 ; ASCII LITERAL FLAG? 
-fbfe 20 0f		            JR      NZ,NOTLIT       ; Line 0938 ; NO, TRY FOR DECIMAL TYPE 
-fc00 cd 9c fb		            CALL    GETCH           ; Line 0939 ; GET LITERAL VALUE 
-fc03 fe 0d		            CP      CR              ; Line 0940 ; CHECK FOR EMPTY FIELD 
-fc05 28 d8		            JR      Z,PARER         ; Line 0941 ; SYNTAX FAULT 
-fc07 6f			            LD      L,A             ; Line 0942 ; CACHE ASCII STRING DATA 
-fc08 cd a7 fb		            CALL    GETUCT          ; Line 0943 ; CHECK LINKING TERMINATOR 
-fc0b 30 d2		            JR      NC,PARER        ; Line 0944 ; FAULT DISCOVERED 
-fc0d 3f			            CCF                     ; Line 0945 ; CLEAR CARRY STATE 
-fc0e c9			            RET                     ; Line 0946  
-fc0f fe 9c		NOTLIT:     CP      DECMRK          ; Line 0947 ; DECIMAL SYMBOL FLAG? 
-fc11 20 11		            JR      NZ,HEX          ; Line 0948 ; NO, SKIP TO HEX INTERPRETER 
-fc13 cd bb fb		DECPAR:     CALL    GETDEC          ; Line 0949 ; EXTRACT VALUE DIGIT 
-fc16 3f			            CCF                     ; Line 0950 ; SYNC CONTROL STATE 
-fc17 d8			            RET     C               ; Line 0951 ; GOT LINE TERMINATOR 
-fc18 e5			            PUSH    HL              ; Line 0952  
-fc19 d1			            POP     DE              ; Line 0953 ; HL COPY IN DE 
-fc1a 29			            ADD     HL,HL           ; Line 0954 ; SCALE HL BY 10 (HL=HL*2) 
-fc1b 29			            ADD     HL,HL           ; Line 0955 ; (HL=HL*4) 
-fc1c 19			            ADD     HL,DE           ; Line 0956 ; (HL=HL*5) 
-fc1d 29			            ADD     HL,HL           ; Line 0957 ; (HL=HL*10) 
-fc1e 06 00		            LD      B,0             ; Line 0958  
-fc20 4f			            LD      C,A             ; Line 0959 ; BC = RETRIEVED VAL DIGIT 
-fc21 09			            ADD     HL,BC           ; Line 0960 ; ACCUMULATE TOTAL 
-fc22 18 ef		            JR      DECPAR          ; Line 0961 ; PARSE SUBSEQUENT DIGITS 
-fc24 cd cd fb		HEX:        CALL    HEXCHK          ; Line 0962 ; VALIDATE CHARACTER AS HEX 
-fc27 29			HEXPAR:     ADD     HL,HL           ; Line 0963 ; SCALE HL BY 16 (HL=HL*2) 
-fc28 29			            ADD     HL,HL           ; Line 0964 ; (HL=HL*4) 
-fc29 29			            ADD     HL,HL           ; Line 0965 ; (HL=HL*8) 
-fc2a 29			            ADD     HL,HL           ; Line 0966 ; (HL=HL*16) 
-fc2b 85			            ADD     A,L             ; Line 0967 ; INJECT NEW VALUE SYMBOL 
-fc2c 6f			            LD      L,A             ; Line 0968  
-fc2d cd c9 fb		            CALL    GETHEX          ; Line 0969 ; ATTEMPT NEXT FIELD VALUE 
-fc30 30 f5		            JR      NC,HEXPAR       ; Line 0970 ; CONTINUITY OBSERVED 
-fc32 3f			            CCF                     ; Line 0971  
-fc33 c9			            RET                     ; Line 0972  
-fc34			;snip 
-fc34			; ============================================================================== 
-fc34			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART C1 OF 4 
-fc34			; Core Function: Dual-Parameter Validation & Supervisor Core Instruction Router 
-fc34			; ============================================================================== 
-fc34			 
-fc34 af			GET2PAR:    XOR     A               ; Line 0984 ; Reset parameter counter to 0 
-fc35 08			            EX      AF,AF'          ; Line 0985 ; Store counter in alternate register 
-fc36 cd f5 fb		            CALL    PARAM           ; Line 0986 ; Parse first input parameter 
-fc39 38 13		            JR      C,ALLREAD       ; Line 0987 ; Branch if empty parameter found 
-fc3b 22 4a 00		            LD      (PAR1),HL       ; Line 0988 ; Store verified value in PAR1 
-fc3e fe 2c		            CP      ','             ; Line 0989 ; Is another argument linked? 
-fc40 08			            EX      AF,AF'          ; Line 0990 ; Retrieve parameter counter 
-fc41 3c			            INC     A               ; Line 0991 ; Increment parsed value count 
-fc42 08			            EX      AF,AF'          ; Line 0992 ; Save counter status back 
-fc43 20 09		            JR      NZ,ALLREAD      ; Line 0993 ; Line ended, terminal parameter reached 
-fc45 cd f5 fb		            CALL    PARAM           ; Line 0994 ; Parse second input parameter 
-fc48 22 4c 00		            LD      (PAR2),HL       ; Line 0995 ; Store value in PAR2 cache 
-fc4b 08			            EX      AF,AF'          ; Line 0996  
-fc4c 3c			            INC     A               ; Line 0997 ; Increment parsed value count to 2 
-fc4d 08			            EX      AF,AF'          ; Line 0998  
-fc4e 08			ALLREAD:    EX      AF,AF'          ; Line 0999 ; Pull parameter count to A 
-fc4f 32 4e 00		            LD      (NPARS),A       ; Line 1000 ; Store quantified execution count 
-fc52 08			            EX      AF,AF'          ; Line 1001 ; Restore ending line character 
-fc53 c9			            RET                     ; Line 1002  
-fc54			 
-fc54 cd 34 fc		PCHECK:     CALL    GET2PAR         ; Line 1016 ; Pull instruction parameter variables 
-fc57 f5			            PUSH    AF              ; Line 1017 ; Cache line character indicator 
-fc58 3a 4e 00		            LD      A,(NPARS)       ; Line 1018 ; Verify parsed arguments count 
-fc5b a7			            AND     A               ; Line 1019  
-fc5c 28 81		            JR      Z,PARER         ; Line 1020 ; Empty target fields, break with error 
-fc5e f1			            POP     AF              ; Line 1021  
-fc5f c9			            RET                     ; Line 1022  
-fc60			 
-fc60 f5			PRTA:       PUSH    AF              ; Line 1029 ; Save working byte parameter 
-fc61 0f			            RRCA                    ; Line 1030 ; Extract upper 4-bit nibble value 
-fc62 0f			            RRCA                    ; Line 1031  
-fc63 0f			            RRCA                    ; Line 1032  
-fc64 0f			            RRCA                    ; Line 1033  
-fc65 cd 69 fc		            CALL    HXCVRT          ; Line 1034 ; Convert and display upper hex digit 
-fc68 f1			            POP     AF              ; Line 1035 ; Retrieve lower 4-bit nibble value 
-fc69 e6 0f		HXCVRT:     AND     $0F             ; Line 1036 ; Isolate hex value parameters 
-fc6b c6 30		            ADD     A,'0'           ; Line 1037 ; Convert to visual ASCII character base 
-fc6d fe 3a		            CP      '9'+1           ; Line 1038 ; Evaluate character index threshold 
-fc6f 38 02		            JR      C,HXPRN         ; Line 1039 ; 0-9 numerical value confirmed 
-fc71 c6 07		            ADD     A,7             ; Line 1040 ; Adjust spacing offset for hex A-F range 
-fc73 c3 d5 f8		HXPRN:      JP      CONOUT          ; Line 1041 ; Flush digit out to terminal screen 
-fc76			 
-fc76 cd 54 fc		HEXC:       CALL    PCHECK          ; Line 1053 ; Extract entry validation fields 
-fc79 2a 4a 00		            LD      HL,(PAR1)       ; Line 1054 ; Retrieve base data value 
-fc7c 3a 4e 00		            LD      A,(NPARS)       ; Line 1055 ; Query parsed field volume count 
-fc7f 3d			            DEC     A               ; Line 1056  
-fc80 28 0b		            JR      Z,PRTHLSP       ; Line 1057 ; Print 16-bit address parameters 
-fc82 23			            INC     HL              ; Line 1058 ; Target relative instruction jump logic offset 
-fc83 23			            INC     HL              ; Line 1059  
-fc84 eb			            EX      DE,HL           ; Line 1060  
-fc85 2a 4c 00		            LD      HL,(PAR2)       ; Line 1061 ; Retrieve target jump location field 
-fc88 ed 52		            SBC     HL,DE           ; Line 1062 ; Calculate offset spacing bounds parameters 
-fc8a			                                    ; Line 1063 ; Fall down directly to output functions 
-fc8a			 
-fc8a cd b1 fa		PNLHLSP:    CALL    CRLF            ; Line 1073 ; Output clear carriage return line break 
-fc8d 7c			PRTHLSP:    LD      A,H             ; Line 1074 ; Load upper address tracking byte 
-fc8e cd 60 fc		            CALL    PRTA            ; Line 1075 ; Visual hex generation dispatch 
-fc91 7d			            LD      A,L             ; Line 1076 ; Load lower address tracking byte 
-fc92			                                    ; Line 1077 ; Fall down directly to spacing interface 
-fc92			 
-fc92 cd 60 fc		PRTASP:     CALL    PRTA            ; Line 1084 ; Visual character hex generation out 
-fc95 3e 20		SPACE:      LD      A,' '           ; Line 1092 ; Load standard terminal spacing character 
-fc97 c3 d5 f8		            JP      CONOUT          ; Line 1093 ; Clear to stream pipeline module 
-fc9a			 
-fc9a			; ------------------------------------------------------------------------------ 
-fc9a			; MONLP - SUPERVISOR SYSTEM MONITOR COMMAND INTERPRETATION VECTOR DISPATCH LOOP 
-fc9a			; ------------------------------------------------------------------------------ 
-fc9a 31 00 01		MONLP:      LD      SP,MONSTK       ; Line 1103 ; Force reset supervisor stack location 
-fc9d cd b1 fa		            CALL    CRLF            ; Line 1104 ; Inject line interface spacer formatting 
-fca0 3e 2a		            LD      A,PROMPT        ; Line 1105 ; Load system user input prompt marker 
-fca2 cd d5 f8		            CALL    CONOUT          ; Line 1106 ; Output tracking prompt string character 
-fca5 cd dd f9		            CALL    GETBUF          ; Line 1107 ; Hook active console command input stream 
-fca8 cd b1 fa		            CALL    CRLF            ; Line 1108  
-fcab cd a7 fb		            CALL    GETUCT          ; Line 1109 ; Retrieve character instruction routing token 
-fcae 21 9a fc		            LD      HL,MONLP        ; Line 1110 ; Establish structural return reference 
-fcb1 e5			            PUSH    HL              ; Line 1111 ; Cache supervisor path tracking vector frame 
-fcb2 fe 2d		            CP      '-'             ; Line 1112 ; Query clear breakpoint command indicator 
-fcb4 28 40		            JR      Z,MINUSB        ; Line 1113 ; Dispatched breakpoint manipulation parser 
-fcb6 d6 41		            SUB     'A'             ; Line 1114 ; Generate jump dictionary entry value index 
-fcb8 ca a9 fd		            JP      Z,ASCII         ; Line 1115 ; Command Action Vector target: [A]ascii 
-fcbb 3d			            DEC     A               ; Line 1116  
-fcbc ca 5b fd		            JP      Z,SETBPT        ; Line 1117 ; Command Action Vector target: [B]reakpoint 
-fcbf 3d			            DEC     A               ; Line 1118  
-fcc0 3d			            DEC     A               ; Line 1119  
-fcc1 ca 06 ff		            JP      Z,DUMP          ; Line 1120 ; Command Action Vector target: [D]ump hex 
-fcc4 3d			            DEC     A               ; Line 1121  
-fcc5 ca fd f7		            JP      Z,EDIT          ; Line 1122 ; Command Action Vector target: [E]dit firmware 
-fcc8 3d			            DEC     A               ; Line 1123  
-fcc9 ca 8e fd		            JP      Z,FILL          ; Line 1124 ; Command Action Vector target: [F]ill memory 
-fccc 3d			            DEC     A               ; Line 1125  
-fccd ca c6 fd		            JP      Z,GO            ; Line 1126 ; Command Action Vector target: [G]o run execute 
-fcd0 3d			            DEC     A               ; Line 1127  
-fcd1 28 a3		            JR      Z,HEXC          ; Line 1128 ; Command Action Vector target: [H]ex conversion 
-fcd3 d6 05		            SUB     5               ; Line 1129  
-fcd5 ca 65 ff		            JP      Z,MOVE          ; Line 1130 ; Command Action Vector target: [M]ove array block 
-fcd8 d6 03		            SUB     3               ; Line 1131  
-fcda ca 00 80		            JP      Z,PASCAL        ; Line 1132 ; Command Action Vector target: [P]ascal overlay 
-fcdd 3d			            DEC     A               ; Line 1133  
-fcde 3d			            DEC     A               ; Line 1134  
-fcdf ca 2b fb		            JP      Z,READ          ; Line 1135 ; Command Action Vector target: [R]ead stream file 
-fce2 3d			            DEC     A               ; Line 1136  
-fce3 ca e6 fe		            JP      Z,SET           ; Line 1137 ; Command Action Vector target: [S]et modify byte 
-fce6 3d			            DEC     A               ; Line 1138  
-fce7 ca 00 f0		            JP      Z,TRACE         ; Line 1139 ; Command Action Vector target: [T]race debugger 
-fcea d6 03		            SUB     3               ; Line 1140  
-fcec ca be fa		            JP      Z,WRITE         ; Line 1141 ; Command Action Vector target: [W]rite storage file 
-fcef 3d			            DEC     A               ; Line 1142  
-fcf0 ca 7d fe		            JP      Z,XAMIN         ; Line 1143 ; Command Action Vector target: [X]examine register 
-fcf3			 
-fcf3 c3 df fb		COMER:      JP      PARER           ; Line 1145 ; Exception caught, command invalid error 
-fcf6 cd a7 fb		MINUSB:     CALL    GETUCT          ; Line 1147 ; Parse following flag qualifier token 
-fcf9 fe 42		            CP      'B'             ; Line 1148 ; Is breakpoint operational argument validated? 
-fcfb 20 f6		            JR      NZ,COMER        ; Line 1149 ; Bad command layout option, throw exception 
-fcfd			;snip 
-fcfd			; ============================================================================== 
-fcfd			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART C2 OF 4 
-fcfd			; Core Function: Breakpoint Table Shifting, Installation, and Clearance Loops 
-fcfd			; ============================================================================== 
-fcfd			 
-fcfd cd f5 fb		CLRBPT:     CALL    PARAM           ; Line 1168 ; Parse address argument if present 
-fd00 06 08		            LD      B,NBP           ; Line 1169 ; Load total breakpoint loop limit count 
-fd02 dd 21 4f 00	            LD      IX,BPTAB        ; Line 1170 ; Point to breakpoint storage matrix area 
-fd06 38 44		            JR      C,CLRALL        ; Line 1171 ; Empty argument, proceed to wipe table 
-fd08 dd 5e 00		CLRSRC:     LD      E,(IX+0)        ; Line 1172 ; Extract low address tracker byte from table 
-fd0b dd 56 01		            LD      D,(IX+1)        ; Line 1173 ; Extract high address tracker byte from table 
-fd0e cd 25 fb		            CALL    DPCMP           ; Line 1174 ; Match address field query parameters 
-fd11 28 20		            JR      Z,CLEAR         ; Line 1175 ; Match discovered, remove breakpoint entry 
-fd13 dd 23		            INC     IX              ; Line 1176 ; Advance table workspace focus pointer 
-fd15 dd 23		            INC     IX              ; Line 1177  
-fd17 dd 23		            INC     IX              ; Line 1178  
-fd19 10 ed		            DJNZ    CLRSRC          ; Line 1179 ; Loop through active elements inside table 
-fd1b 06 08		LSTBPT:     LD      B,NBP           ; Line 1181 ; Query and report active target vectors 
-fd1d 11 4f 00		            LD      DE,BPTAB        ; Line 1182  
-fd20 1a			LSTB:       LD      A,(DE)          ; Line 1183 ; Extract tracking address low byte register 
-fd21 6f			            LD      L,A             ; Line 1184  
-fd22 13			            INC     DE              ; Line 1185  
-fd23 1a			            LD      A,(DE)          ; Line 1186 ; Extract tracking address high byte register 
-fd24 67			            LD      H,A             ; Line 1187  
-fd25 13			            INC     DE              ; Line 1188  
-fd26 13			            INC     DE              ; Line 1189  
-fd27 fe f8		            CP      MONPAG          ; Line 1190 ; Is address field marked as inactive ROM page? 
-fd29 28 05		            JR      Z,LASTB         ; Line 1191 ; Yes, end of directory listings reached 
-fd2b cd 8d fc		            CALL    PRTHLSP         ; Line 1192 ; Print active address reference out to terminal 
-fd2e 10 f0		            DJNZ    LSTB            ; Line 1193 ; Loop until table list outputs completely 
-fd30 c3 b1 fa		LASTB:      JP      CRLF            ; Line 1194  
-fd33			 
-fd33 05			CLEAR:      DEC     B               ; Line 1196 ; Calculate size adjustments shift metrics 
-fd34 78			            LD      A,B             ; Line 1197  
-fd35 87			            ADD     A,A             ; Line 1198 ; Scale row entry sizes offset elements (Row * 2) 
-fd36 80			            ADD     A,B             ; Line 1199 ; (Row * 3 size matrix) 
-fd37 4f			            LD      C,A             ; Line 1200 ; Set loop index constraint size count in BC 
-fd38 06 00		            LD      B,0             ; Line 1201  
-fd3a dd e5		            PUSH    IX              ; Line 1202  
-fd3c d1			            POP     DE              ; Line 1203 ; DE = Starting address location of empty entry 
-fd3d 28 07		            JR      Z,NOMOVE        ; Line 1204 ; Array row bounds matched, skip moving layout 
-fd3f 62			            LD      H,D             ; Line 1205 ; Establish memory block copy address vectors 
-fd40 6b			            LD      L,E             ; Line 1206  
-fd41 23			            INC     HL              ; Line 1207  
-fd42 23			            INC     HL              ; Line 1208  
-fd43 23			            INC     HL              ; Line 1209  
-fd44 ed b0		            LDIR                    ; Line 1210 ; Compress array table space to close gap 
-fd46 3e f8		NOMOVE:     LD      A,MONPAG        ; Line 1211 ; Load standard monitor page identifier flag 
-fd48 13			            INC     DE              ; Line 1212  
-fd49 12			            LD      (DE),A          ; Line 1213 ; Mark newly exposed row index slots empty 
-fd4a 18 cf		            JR      LSTBPT          ; Line 1214 ; Output revised active breakpoint map grid 
-fd4c			 
-fd4c dd 23		CLRALL:     INC     IX              ; Line 1216 ; Advance table address pointer location focus 
-fd4e 11 03 00		            LD      DE,3            ; Line 1217 ; Load structural matrix entry stride dimension 
-fd51 3e f8		            LD      A,MONPAG        ; Line 1218 ; Load baseline inactive identifier marker code 
-fd53 dd 77 00		CLRBPN:     LD      (IX+0),A        ; Line 1219 ; Inject empty code value into high index byte 
-fd56 dd 19		            ADD     IX,DE           ; Line 1220 ; Step matrix focus register to next row path 
-fd58 10 f9		            DJNZ    CLRBPN          ; Line 1221  
-fd5a c9			            RET                     ; Line 1222  
-fd5b			 
-fd5b cd f5 fb		SETBPT:     CALL    PARAM           ; Line 1233 ; Extract target entry location parameters 
-fd5e 38 bb		            JR      C,LSTBPT        ; Line 1234 ; Argument clear, proceed directly to display lists 
-fd60 dd 21 4f 00	            LD      IX,BPTAB        ; Line 1235 ; Track master target breakpoint array memory base 
-fd64 06 08		            LD      B,NBP           ; Line 1236 ; Load maximum internal storage allocation bounds 
-fd66 dd 5e 00		SETB:       LD      E,(IX+0)        ; Line 1237 ; Read active row vector tracking indices low byte 
-fd69 dd 56 01		            LD      D,(IX+1)        ; Line 1238 ; Read active row vector tracking indices high byte 
-fd6c 7a			            LD      A,D             ; Line 1239  
-fd6d fe f8		            CP      MONPAG          ; Line 1240 ; Is slot currently empty/inactive configuration? 
-fd6f 28 15		            JR      Z,SETIT         ; Line 1241 ; Empty slot discovered, inject user parameters 
-fd71 cd 25 fb		            CALL    DPCMP           ; Line 1242 ; Check if address vector duplicate is present 
-fd74 28 a5		            JR      Z,LSTBPT        ; Line 1243 ; Already configured, skip addition sequence 
-fd76 dd 23		            INC     IX              ; Line 1244 ; Shift tracking focus pointer to following row 
-fd78 dd 23		            INC     IX              ; Line 1245  
-fd7a dd 23		            INC     IX              ; Line 1246  
-fd7c 10 e8		            DJNZ    SETB            ; Line 1247 ; Loop until entire storage block evaluates fully 
-fd7e 11 c6 ff		            LD      DE,ALLSET       ; Line 1248  
-fd81 cd ae fa		            CALL    BUFFCR          ; Line 1249 ; Array table footprint saturated message block 
-fd84 18 95		            JR      LSTBPT          ; Line 1250  
-fd86 dd 75 00		SETIT:      LD      (IX+0),L        ; Line 1252 ; Inject destination address parameters into table 
-fd89 dd 74 01		            LD      (IX+1),H        ; Line 1253  
-fd8c 18 8d		            JR      LSTBPT          ; Line 1254 ; Display refreshed layout overview trace 
-fd8e			;snip 
-fd8e			; ============================================================================== 
-fd8e			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART C3 OF 4 
-fd8e			; Core Function: Memory Array Fill, ASCII Injection, and Runtime Execution Loops 
-fd8e			; ============================================================================== 
-fd8e			 
-fd8e			; ------------------------------------------------------------------------------ 
-fd8e			; FILL - FUNCTION TO DATA-FILL A TARGET REGION OF SYSTEM RAM 
-fd8e			; ------------------------------------------------------------------------------ 
-fd8e cd 54 fc		FILL:       CALL    PCHECK          ; Line 1262 ; Extract boundary setup metrics 
-fd91 fe 2c		            CP      ','             ; Line 1263 ; Verify syntax parsing comma divider 
-fd93 c2 df fb		FERR:       JP      NZ,PARER        ; Line 1264 ; Invalid parameters array syntax layout 
-fd96 cd f5 fb		            CALL    PARAM           ; Line 1265 ; Extract fill data token argument 
-fd99 7d			            LD      A,L             ; Line 1266 ; Assign character byte value parameter 
-fd9a 2a 4a 00		            LD      HL,(PAR1)       ; Line 1267 ; Load start coordinate address value 
-fd9d eb			            EX      DE,HL           ; Line 1268 ; Move start vector address to DE 
-fd9e 2a 4c 00		            LD      HL,(PAR2)       ; Line 1269 ; Extract destination end marker address 
-fda1 12			FILLM:      LD      (DE),A          ; Line 1270 ; Inject data value directly into RAM target 
-fda2 cd 25 fb		            CALL    DPCMP           ; Line 1271 ; Evaluate pointer loop end state targets 
-fda5 13			            INC     DE              ; Line 1272 ; Advance writing pointer address 
-fda6 20 f9		            JR      NZ,FILLM        ; Line 1273 ; Repeat execution pass loop completely 
-fda8 c9			            RET                     ; Line 1274  
-fda9			 
-fda9			; ------------------------------------------------------------------------------ 
-fda9			; ASCII - FUNCTION TO INJECT STRINGS DIRECTLY INTO TARGET ADDRESS 
-fda9			; ------------------------------------------------------------------------------ 
-fda9 cd f5 fb		ASCII:      CALL    PARAM           ; Line 1286 ; Extract destination address vector 
-fdac da df fb		            JP      C,PARER         ; Line 1287 ; Target address absent, trigger error path 
-fdaf e5			            PUSH    HL              ; Line 1288 ; Cache writing base address point 
-fdb0 cd dd f9		            CALL    GETBUF          ; Line 1289 ; Collect target text line string from kbd 
-fdb3 e1			            POP     HL              ; Line 1290 ; Restore base memory write coordinate 
-fdb4 cd 9c fb		ASCL:       CALL    GETCH           ; Line 1291 ; Extract text stream byte token element 
-fdb7 77			            LD      (HL),A          ; Line 1292 ; Commit character byte string directly to RAM 
-fdb8 23			            INC     HL              ; Line 1293 ; Advance tracking buffer target index 
-fdb9 fe 0d		            CP      CR              ; Line 1294 ; Is string line completion reached? 
-fdbb 20 f7		            JR      NZ,ASCL         ; Line 1295 ; Continue string generation loop pass 
-fdbd 2b			            DEC     HL              ; Line 1296 ; Adjust boundary focus back over return byte 
-fdbe 36 04		            LD      (HL),EOT        ; Line 1297 ; Inject End of Transmission sentinel tracking 
-fdc0 cd b1 fa		            CALL    CRLF            ; Line 1298  
-fdc3 c3 8d fc		            JP      PRTHLSP         ; Line 1299 ; Print final writing index tracking vector 
-fdc6			 
-fdc6			; ------------------------------------------------------------------------------ 
-fdc6			; GO - FUNCTION TO TRANSFER ABSOLUTE SYSTEM CONTROLS TO TARGET APPLICATION 
-fdc6			; ------------------------------------------------------------------------------ 
-fdc6 cd f5 fb		GO:         CALL    PARAM           ; Line 1312 ; Query code execution entry address 
-fdc9 38 03		            JR      C,CONTINUE      ; Line 1313 ; Missing input parameter, continue old task 
-fdcb 22 77 00		            LD      (PCSAV),HL      ; Line 1314 ; Load target entry path vector code to PC 
-fdce 21 07 fe		CONTINUE:   LD      HL,BREAK        ; Line 1316 ; Intercept Core Restart tracking loop trap 
-fdd1 22 39 00		            LD      (RST7+1),HL     ; Line 1317 ; Route vector directly into BREAK interface 
-fdd4 21 4f 00		            LD      HL,BPTAB        ; Line 1318 ; Master tracking base of Breakpoint Array 
-fdd7 06 08		            LD      B,NBP           ; Line 1319 ; Initialize loop tracking limit index span 
-fdd9 5e			INSTALL:    LD      E,(HL)          ; Line 1320 ; Extract active trap point address low byte 
-fdda 23			            INC     HL              ; Line 1321  
-fddb 56			            LD      D,(HL)          ; Line 1322 ; Extract active trap point address high byte 
-fddc 23			            INC     HL              ; Line 1323  
-fddd e5			            PUSH    HL              ; Line 1324 ; Cache array scanning layout index pointer 
-fdde 2a 77 00		            LD      HL,(PCSAV)      ; Line 1325 ; Extract application program start counter 
-fde1 cd 25 fb		            CALL    DPCMP           ; Line 1326 ; Entry coordinate matches breakpoint target? 
-fde4 e1			            POP     HL              ; Line 1327 ; Restore pointer context element state 
-fde5 1a			            LD      A,(DE)          ; Line 1328 ; Fetch user app native operation opcode 
-fde6 77			            LD      (HL),A          ; Line 1329 ; Store operation byte into cache row block 
-fde7 28 03		            JR      Z,MISS          ; Line 1330 ; Entry vector alignment conflict, skip mask 
-fde9 3e ff		            LD      A,BRK           ; Line 1331 ; Load software trap restart instruction code 
-fdeb 12			            LD      (DE),A          ; Line 1332 ; Overwrite program code line with active trap 
-fdec 23			MISS:       INC     HL              ; Line 1333  
-fded 10 ea		            DJNZ    INSTALL         ; Line 1334 ; Continue code loop initialization pass 
-fdef 31 67 00		            LD      SP,ISAV         ; Line 1335 ; Swap execution stack focus over register cache 
-fdf2			;snip 
-fdf2 f1			            POP     AF              ; Line 1336  
-fdf3 ed 47		            LD      I,A             ; Line 1337 ; Restore Register I 
-fdf5 f1			            POP     AF              ; Line 1338 ; Restore Registers AF 
-fdf6 c1			            POP     BC              ; Line 1339 ; Restore Registers BC 
-fdf7 d1			            POP     DE              ; Line 1340 ; Restore Registers DE 
-fdf8 e1			            POP     HL              ; Line 1341 ; Restore Registers HL 
-fdf9 dd e1		            POP     IX              ; Line 1342 ; Restore Index Register IX 
-fdfb fd e1		            POP     IY              ; Line 1343 ; Restore Index Register IY 
-fdfd e1			            POP     HL              ; Line 1344 ; Pull saved Stack Pointer 
-fdfe f9			            LD      SP,HL           ; Line 1345 ; Set active Stack Pointer SP 
-fdff 2a 77 00		            LD      HL,(PCSAV)      ; Line 1346 ; Load user app start vector 
-fe02 e5			            PUSH    HL              ; Line 1347 ; Force target onto stack layer 
-fe03 2a 6f 00		            LD      HL,(HLSAV)      ; Line 1348 ; Restore target value to HL 
-fe06 c9			            RET                     ; Line 1349 ; Control transfer to user app 
-fe07			 
-fe07 22 6f 00		BREAK:      LD      (HLSAV),HL      ; Line 1357 ; Capture current HL state 
-fe0a 22 79 00		            LD      (DISPAD),HL     ; Line 1358 ; Assign address as hex dump base 
-fe0d e1			            POP     HL              ; Line 1359 ; Pull program counter from stack 
-fe0e 2b			            DEC     HL              ; Line 1360 ; Offset back over executed trap 
-fe0f 22 77 00		            LD      (PCSAV),HL      ; Line 1361 ; Capture execution address 
-fe12 ed 73 75 00	            LD      (SPSAV),SP      ; Line 1362 ; Capture application stack bounds 
-fe16 31 75 00		            LD      SP,SPSAV        ; Line 1363 ; Relocate stack focus to workspace 
-fe19 fd e5		            PUSH    IY              ; Line 1364 ; Snapshot registers/flags matrices 
-fe1b dd e5		            PUSH    IX              ; Line 1365  
-fe1d 3b			            DEC     SP              ; Line 1366 ; Skip structural slot for HLSAV 
-fe1e 3b			            DEC     SP              ; Line 1367  
-fe1f d5			            PUSH    DE              ; Line 1368  
-fe20 c5			            PUSH    BC              ; Line 1369  
-fe21 f5			            PUSH    AF              ; Line 1370  
-fe22 ed 57		            LD      A,I             ; Line 1371 ; Capture interrupt register flag 
-fe24 f5			            PUSH    AF              ; Line 1372  
-fe25 31 00 01		            LD      SP,MONSTK       ; Line 1373 ; Re-establish supervisor stack 
-fe28 21 4f 00		            LD      HL,BPTAB        ; Line 1374 ; Target base of Breakpoint Table 
-fe2b 06 08		            LD      B,NBP           ; Line 1375 ; Initialize table cleaning count 
-fe2d 5e			RESETBP:    LD      E,(HL)          ; Line 1376 ; Pull trap vector low byte 
-fe2e 23			            INC     HL              ; Line 1377  
-fe2f 56			            LD      D,(HL)          ; Line 1378 ; Pull trap vector high byte 
-fe30 23			            INC     HL              ; Line 1379  
-fe31 7e			            LD      A,(HL)          ; Line 1380 ; Extract cached original opcode 
-fe32 23			            INC     HL              ; Line 1381  
-fe33 12			            LD      (DE),A          ; Line 1382 ; Patch app line back to original 
-fe34 10 f7		            DJNZ    RESETBP         ; Line 1383 ; Loop until breakpoint clears 
-fe36 21 9a fc		            LD      HL,MONLP        ; Line 1384 ; Load primary monitor execution path 
-fe39 22 39 00		            LD      (RST7+1),HL     ; Line 1385 ; Standardize vectors back to monitor 
-fe3c			;snip 
-fe3c cd 40 fe		STATUS:     CALL    RDIS            ; Line 1390 ; Output current register snapshots 
-fe3f ff			            RST     $38             ; Line 1391 ; Loop control back into command line interpreter 
-fe40			 
-fe40 11 d0 ff		RDIS:       LD      DE,REGHDR       ; Line 1393 ; Load register summary interface layout 
-fe43 cd ae fa		            CALL    BUFFCR          ; Line 1394  
-fe46 cd 65 fe		            CALL    FLAGDIS         ; Line 1395 ; Map out text summary parameters for flags 
-fe49 11 68 00		            LD      DE,ISAV+1       ; Line 1396 ; Target stored register snapshot: I 
-fe4c 1a			            LD      A,(DE)          ; Line 1397  
-fe4d 13			            INC     DE              ; Line 1398  
-fe4e 13			            INC     DE              ; Line 1399  
-fe4f cd 92 fc		            CALL    PRTASP          ; Line 1400 ; Output hex register details followed by spacing 
-fe52 1a			            LD      A,(DE)          ; Line 1401 ; Target stored register snapshot: A 
-fe53 13			            INC     DE              ; Line 1402  
-fe54 cd 92 fc		            CALL    PRTASP          ; Line 1403 ; Output hex register details followed by spacing 
-fe57 06 07		            LD      B,7             ; Line 1404 ; Initialize 16-bit register looping cycle index 
-fe59 1a			PRTDBL:     LD      A,(DE)          ; Line 1405 ; Extract structural byte data from register array 
-fe5a 6f			            LD      L,A             ; Line 1406  
-fe5b 13			            INC     DE              ; Line 1407  
-fe5c 1a			            LD      A,(DE)          ; Line 1408  
-fe5d 67			            LD      H,A             ; Line 1409  
-fe5e 13			            INC     DE              ; Line 1410  
-fe5f cd 8d fc		            CALL    PRTHLSP         ; Line 1411 ; Output 16-bit word block data index 
-fe62 10 f5		            DJNZ    PRTDBL          ; Line 1412 ; Loop until all 7 master snapshot registers clear 
-fe64 c9			            RET                     ; Line 1413  
-fe65			 
-fe65 21 92 ff		FLAGDIS:    LD      HL,FLGTAB       ; Line 1415 ; Point to system bitmask testing parameter array 
-fe68 06 06		            LD      B,6             ; Line 1416 ; Set iteration limit spanning the 6 Z80 flags 
-fe6a 3a 69 00		PRTFLG:     LD      A,(AFSAV)       ; Line 1417 ; Pull cached application flags state register 
-fe6d a6			            AND     (HL)            ; Line 1418 ; Isolate current query focus bit layer 
-fe6e 23			            INC     HL              ; Line 1419  
-fe6f 7e			            LD      A,(HL)          ; Line 1420 ; Extract visual ASCII symbol assigned to target flag 
-fe70 20 02		            JR      NZ,FLAGSET      ; Line 1421 ; Flag logic bit active, output symbol directly 
-fe72 3e 2d		            LD      A,'-'           ; Line 1422 ; Bit clear, override output character with spacer dash 
-fe74 cd d5 f8		FLAGSET:    CALL    CONOUT          ; Line 1423 ; Write character out to console display line 
-fe77 23			            INC     HL              ; Line 1424  
-fe78 10 f0		            DJNZ    PRTFLG          ; Line 1425 ; Loop until flags tracking pass satisfies entirely 
-fe7a c3 95 fc		            JP      SPACE           ; Line 1426  
-fe7d			;snip 
-fe7d			; ------------------------------------------------------------------------------ 
-fe7d			; XAMIN - FUNCTION TO QUERY AND INTERACTIVELY UPDATE REGISTER SNAPSHOTS 
-fe7d			; ------------------------------------------------------------------------------ 
-fe7d cd a7 fb		XAMIN:      CALL    GETUCT          ; Line 1442 ; Query parameter key token 
-fe80 38 be		            JR      C,RDIS          ; Line 1443 ; If missing token, output all 
-fe82 fe 46		            CP      'F'             ; Line 1444 ; Target matches [F]lags? 
-fe84 28 3b		            JR      Z,FLGMFY        ; Line 1445  
-fe86 fe 41		            CP      'A'             ; Line 1446 ; Target matches [A]ccumulator? 
-fe88 28 25		            JR      Z,ACCMFY        ; Line 1447  
-fe8a fe 49		            CP      'I'             ; Line 1448 ; Target matches [I]nterrupt? 
-fe8c 28 26		            JR      Z,INTMFY        ; Line 1449  
-fe8e 21 9e ff		            LD      HL,REGTAB       ; Line 1450 ; Set array list bounds focus 
-fe91 01 08 00		            LD      BC,8            ; Line 1451  
-fe94 ed b1		            CPIR                    ; Line 1452 ; Scan text index for character match 
-fe96 20 41		            JR      NZ,FPARER       ; Line 1453 ; Unmatched, parameter error 
-fe98 21 69 00		            LD      HL,AFSAV        ; Line 1454 ; Base of register storage block 
-fe9b 09			            ADD     HL,BC           ; Line 1455 ; Add offset index (Words) 
-fe9c 09			            ADD     HL,BC           ; Line 1456  
-fe9d e5			            PUSH    HL              ; Line 1457  
-fe9e 7e			            LD      A,(HL)          ; Line 1458 ; Pull existing data byte component 
-fe9f 23			            INC     HL              ; Line 1459  
-fea0 66			            LD      H,(HL)          ; Line 1460  
-fea1 6f			            LD      L,A             ; Line 1461  
-fea2 cd 8d fc		            CALL    PRTHLSP         ; Line 1462 ; Print 16-bit state to terminal 
-fea5 cd f2 fb		            CALL    READPAR         ; Line 1463 ; Parse number modification data 
-fea8 eb			            EX      DE,HL           ; Line 1464  
-fea9 e1			            POP     HL              ; Line 1465 ; Restore context data pointer 
-feaa d8			            RET     C               ; Line 1466 ; No modification logged, exit block 
-feab 73			            LD      (HL),E          ; Line 1467 ; Write revised lower byte to cache 
-feac 23			            INC     HL              ; Line 1468  
-fead 72			            LD      (HL),D          ; Line 1469 ; Write revised upper byte to cache 
-feae c9			            RET                     ; Line 1470  
-feaf			 
-feaf 11 6a 00		ACCMFY:     LD      DE,AFSAV+1      ; Line 1472 ; Target register snapshot: A 
-feb2 18 03		            JR      MFY8            ; Line 1473  
-feb4 11 68 00		INTMFY:     LD      DE,ISAV+1       ; Line 1475 ; Target register snapshot: I 
-feb7 1a			MFY8:       LD      A,(DE)          ; Line 1476  
-feb8 d5			            PUSH    DE              ; Line 1477 ; Cache system memory entry tracker 
-feb9 cd ef fb		            CALL    MODPAR          ; Line 1478 ; Print current metric and evaluate update 
-febc d1			            POP     DE              ; Line 1479  
-febd d8			            RET     C               ; Line 1480 ; Value unchanged, return from handler 
-febe 7d			            LD      A,L             ; Line 1481 ; Isolate lower byte data 
-febf 12			            LD      (DE),A          ; Line 1482 ; Save updated byte to snapshot register 
-fec0 c9			            RET                     ; Line 1483  
-fec1			 
-fec1 cd 65 fe		FLGMFY:     CALL    FLAGDIS         ; Line 1485 ; Display flag bit parameters 
-fec4 cd dd f9		            CALL    GETBUF          ; Line 1486 ; Pull updated descriptors array data 
-fec7 0e 00		            LD      C,0             ; Line 1487 ; Initialize empty bitmask accumulator 
-fec9 cd a7 fb		FLGL:       CALL    GETUCT          ; Line 1488 ; Extract target identifier letter token 
-fecc d8			            RET     C               ; Line 1489 ; Line complete, exit block 
-fecd 21 93 ff		            LD      HL,FLGTAB+1     ; Line 1490 ; Set scanning database pointer focus 
-fed0 06 06		            LD      B,6             ; Line 1491  
-fed2 be			FLG2:       CP      (HL)            ; Line 1492 ; Input character matches descriptor? 
-fed3 28 07		            JR      Z,FSET          ; Line 1493 ; Match found, activate bit mask 
-fed5 23			            INC     HL              ; Line 1494  
-fed6 23			            INC     HL              ; Line 1495  
-fed7 10 f9		            DJNZ    FLG2            ; Line 1496 ; Continue scanning options list 
-fed9 c3 df fb		FPARER:     JP      PARER           ; Line 1497 ; Invalid token identifier exception 
-fedc			 
-fedc 79			FSET:       LD      A,C             ; Line 1499 ; Pull parameter bit mask cache 
-fedd 2b			            DEC     HL              ; Line 1500 ; Realign pointer over flag mask byte 
-fede b6			            OR      (HL)            ; Line 1501 ; Inject parameter mask layer into data byte 
-fedf 23			            INC     HL              ; Line 1502  
-fee0 32 69 00		            LD      (AFSAV),A       ; Line 1503 ; Commit updated flags byte to storage 
-fee3 4f			            LD      C,A             ; Line 1504  
-fee4 18 e3		            JR      FLGL            ; Line 1505 ; Query stream for additional tokens 
-fee6			;snip 
-fee6			; ------------------------------------------------------------------------------ 
-fee6			; SET - FUNCTION TO INTERACTIVELY EXAMINE AND INJECT BYTES DIRECTLY INTO RAM 
-fee6			; ------------------------------------------------------------------------------ 
-fee6 cd 54 fc		SET:        CALL    PCHECK          ; Line 1518 ; Parse and verify target address 
-fee9 2a 4a 00		            LD      HL,(PAR1)       ; Line 1519  
-feec eb			            EX      DE,HL           ; Line 1520 ; Relocate tracking address pointer to DE 
-feed 62			SETLP:      LD      H,D             ; Line 1521 ; Align address into HL for screen print 
-feee 6b			            LD      L,E             ; Line 1522  
-feef cd 8a fc		            CALL    PNLHLSP         ; Line 1523 ; Direct print: CR, LF, Address, space 
-fef2 1a			            LD      A,(DE)          ; Line 1524 ; Read existing live data byte from RAM 
-fef3 d5			            PUSH    DE              ; Line 1525  
-fef4 cd ef fb		            CALL    MODPAR          ; Line 1526 ; Output current state, await new data entry 
-fef7 d1			            POP     DE              ; Line 1527  
-fef8 38 03		            JR      C,NOUPDAT       ; Line 1528 ; No data entry, retain baseline value 
-fefa eb			            EX      DE,HL           ; Line 1529 ; Swap writing pointers and data blocks 
-fefb 73			            LD      (HL),E          ; Line 1530 ; Write user modification into RAM 
-fefc eb			            EX      DE,HL           ; Line 1531  
-fefd fe 5e		NOUPDAT:    CP      '^'             ; Line 1532 ; Query command backstep indicator 
-feff 1b			            DEC     DE              ; Line 1533 ; Calculate address backward 
-ff00 28 eb		            JR      Z,SETLP         ; Line 1534 ; Navigation token valid, cycle loop back 
-ff02 13			            INC     DE              ; Line 1535 ; Re-adjust target pointer alignments 
-ff03 13			            INC     DE              ; Line 1536 ; Advance writing index coordinates forward 
-ff04 18 e7		            JR      SETLP           ; Line 1537 ; Repeat verification step pass 
-ff06			;snip 
-ff06			; ------------------------------------------------------------------------------ 
-ff06			; DUMP - FUNCTION TO OUTPUT MEMORY BLOCKS VIA HEX AND ASCII DESCRIPTORS 
-ff06			; ------------------------------------------------------------------------------ 
-ff06 cd 34 fc		DUMP:       CALL    GET2PAR         ; Line 1553 ; Parse text string block variables 
-ff09 3a 4e 00		            LD      A,(NPARS)       ; Line 1554 ; Query parsed argument metrics count 
-ff0c a7			            AND     A               ; Line 1555  
-ff0d 2a 79 00		            LD      HL,(DISPAD)     ; Line 1556 ; Load continuous tracking address from cache 
-ff10 11 7f 00		            LD      DE,DEFLEN       ; Line 1557 ; Load system default block data span length 
-ff13 28 0d		            JR      Z,DISPLAY       ; Line 1558 ; No parameters, use defaults 
-ff15 2a 4a 00		            LD      HL,(PAR1)       ; Line 1560 ; Custom parameters found, focus target 
-ff18 3d			            DEC     A               ; Line 1561 ; Evaluate trailing argument limits 
-ff19 28 07		            JR      Z,DISPLAY       ; Line 1562 ; Single custom argument, use default bounds 
-ff1b eb			            EX      DE,HL           ; Line 1563 ; Multi-argument setup coordinates 
-ff1c 2a 4c 00		            LD      HL,(PAR2)       ; Line 1564 ; Extract custom terminal boundary block 
-ff1f eb			            EX      DE,HL           ; Line 1565 ; HL = Start memory pointer, DE = End memory pointer 
-ff20 18 04		            JR      DISPL           ; Line 1566  
-ff22 e5			DISPLAY:    PUSH    HL              ; Line 1567  
-ff23 19			            ADD     HL,DE           ; Line 1568 ; Factor default boundary spacing bounds 
-ff24 eb			            EX      DE,HL           ; Line 1569 ; DE = Calculated end address boundary markers 
-ff25 e1			            POP     HL              ; Line 1570 ; HL = Restore start layout base 
-ff26 7d			DISPL:      LD      A,L             ; Line 1571  
-ff27 e6 f0		            AND     $F0             ; Line 1572 ; Align display view row blocks onto 16-byte tracks 
-ff29 6f			            LD      L,A             ; Line 1573  
-ff2a 7b			            LD      A,E             ; Line 1574  
-ff2b e6 f0		            AND     $F0             ; Line 1575  
-ff2d c6 10		            ADD     A,16            ; Line 1576 ; Enforce rounding ceiling limits 
-ff2f 5f			            LD      E,A             ; Line 1577  
-ff30 30 01		            JR      NC,DISPLIN      ; Line 1578 ; Carry clear, row tracks balance 
-ff32 14			            INC     D               ; Line 1579  
-ff33 e5			DISPLIN:    PUSH    HL              ; Line 1580 ; Cache line tracking start boundary vector index 
-ff34 cd 8a fc		            CALL    PNLHLSP         ; Line 1581 ; Print row location out: CR, LF, Address, space 
-ff37 cd 95 fc		            CALL    SPACE           ; Line 1582  
-ff3a 06 08		            LD      B,8             ; Line 1583 ; Initialize visual dual-column loop count limit 
-ff3c 7e			PRTPAIR:    LD      A,(HL)          ; Line 1584 ; Fetch live data memory byte from RAM 
-ff3d 23			            INC     HL              ; Line 1585  
-ff3e cd 60 fc		            CALL    PRTA            ; Line 1586 ; Convert and output byte data hex digits to screen 
-ff41 7e			            LD      A,(HL)          ; Line 1587 ; Fetch tracking dual data byte element 
-ff42 23			            INC     HL              ; Line 1588  
-ff43 cd 92 fc		            CALL    PRTASP          ; Line 1589 ; Convert and output byte data hex digits with space 
-ff46 10 f4		            DJNZ    PRTPAIR         ; Line 1590 ; Continue text row parsing blocks pass satisfying rows 
-ff48 e1			            POP     HL              ; Line 1591 ; Restore line base address tracking focus 
-ff49 06 10		            LD      B,16            ; Line 1592 ; Set ASCII alternative rendering column block width 
-ff4b 7e			TXTPRT:     LD      A,(HL)          ; Line 1593 ; Extract byte parameter context element data 
-ff4c fe 20		            CP      $20             ; Line 1594 ; Check character limits bounds text value space 
-ff4e 38 04		            JR      C,NOASC         ; Line 1595 ; Character non-printable control code, hide element 
-ff50 fe 80		            CP      $80             ; Line 1596 ; Evaluate against high parity character threshold 
-ff52 38 02		            JR      C,PRNT          ; Line 1597 ; Printable standard ASCII character validated clean 
-ff54 3e 2e		NOASC:      LD      A,'.'           ; Line 1598 ; Format invalid character out as placeholder dot 
-ff56 cd d5 f8		PRNT:       CALL    CONOUT          ; Line 1599 ; Stream character out to console display track 
-ff59 23			            INC     HL              ; Line 1600  
-ff5a 10 ef		            DJNZ    TXTPRT          ; Line 1601 ; Loop layout text until entire 16-character column fills 
-ff5c 22 79 00		            LD      (DISPAD),HL     ; Line 1602 ; Update default terminal address mapping location 
-ff5f cd 25 fb		            CALL    DPCMP           ; Line 1603 ; Absolute terminal block display views balanced? 
-ff62 20 cf		            JR      NZ,DISPLIN      ; Line 1604 ; Array segment has remaining blocks, output following row 
-ff64 c9			            RET                     ; Line 1605  
-ff65			 
-ff65			; ------------------------------------------------------------------------------ 
-ff65			; MOVE - BLOCK MEMORY SHIFTING AND PROTECTION SYSTEM SUBROUTINES 
-ff65			; ------------------------------------------------------------------------------ 
-ff65 cd 54 fc		MOVE:       CALL    PCHECK          ; Line 1616 ; Extract movement tracking address block parameters 
-ff68 fe 2c		            CP      ','             ; Line 1617 ; Check syntax separator structure parameters limits 
-ff6a c2 df fb		            JP      NZ,PARER        ; Line 1618 ; Formatting parsing exception error, abort task path 
-ff6d cd f5 fb		            CALL    PARAM           ; Line 1619 ; Extract movement destination address parameters 
-ff70 e5			            PUSH    HL              ; Line 1620 ; Cache destination block target mapping address vector 
-ff71 2a 4a 00		            LD      HL,(PAR1)       ; Line 1621 ; Extract primary source origin block starting address 
-ff74 eb			            EX      DE,HL           ; Line 1622  
-ff75 2a 4c 00		            LD      HL,(PAR2)       ; Line 1623 ; Extract primary source origin block terminal address 
-ff78 d5			            PUSH    DE              ; Line 1624  
-ff79 b7			            OR      A               ; Line 1625 ; Reset internal carry flags matrix values to zero 
-ff7a ed 52		            SBC     HL,DE           ; Line 1626 ; Process subtraction calculations to measure block size 
-ff7c 44			            LD      B,H             ; Line 1627 ; Copy calculated data load block size parameter into BC 
-ff7d 4d			            LD      C,L             ; Line 1628  
-ff7e e1			            POP     HL              ; Line 1629 ; HL = Source location starting address mapping track 
-ff7f d1			            POP     DE              ; Line 1630 ; DE = Destination location starting address mapping track 
-ff80 cd 25 fb		            CALL    DPCMP           ; Line 1631 ; Evaluate coordinates boundaries layout vectors paths 
-ff83 c8			            RET     Z               ; Line 1632 ; Coordinates balance identically, no shifting needed 
-ff84 38 04		            JR      C,MVDWN         ; Line 1633 ; Shift path destination overlaps forward, move backward 
-ff86 03			            INC     BC              ; Line 1634  
-ff87 ed b0		            LDIR                    ; Line 1635 ; Secure memory shift execution pass: Bottom up tracking 
-ff89 c9			            RET                     ; Line 1636  
-ff8a 09			MVDWN:      ADD     HL,BC           ; Line 1637 ; Adjust address paths focus points over block end 
-ff8b eb			            EX      DE,HL           ; Line 1638  
-ff8c 09			            ADD     HL,BC           ; Line 1639  
-ff8d eb			            EX      DE,HL           ; Line 1640 ; DE = Recalculated destination terminal vector point 
-ff8e 03			            INC     BC              ; Line 1641  
-ff8f ed b8		            LDDR                    ; Line 1642 ; Secure memory shift execution pass: Top down tracking 
-ff91 c9			            RET                     ; Line 1643  
-ff92			;snip 
-ff92			; ------------------------------------------------------------------------------ 
-ff92			; DATA BLOCK DEFINITIONS & EXPLICIT STORAGE TABLES 
-ff92			; ------------------------------------------------------------------------------ 
-ff92 80 53 40 5a 10 41 04 50 02 4e 01 43	FLGTAB:     DEFB    $80, 'S', $40, 'Z', $10, 'A', $04, 'P', $02, 'N', $01, 'C' ; Line 1646  
-ff9e ..			REGTAB:     DEFM    "PSYXHDB"       ; Line 1647  
-ffa5			 
-ffa5 0c			SGNON:      DEFB    FF              ; Line 1649 ; Clear Screen macro instruction code 
-ffa6 ..			            DEFM    "TUSCAN V1.0 MITSI" ; Line 1650 ; Console initialization splash header 
-ffb7 04			            DEFB    EOT             ; Line 1651  
-ffb8 ..			TPROMP:     DEFM    "FILES FOUND :" ; Line 1652  
-ffc5 04			            DEFB    EOT             ; Line 1653  
-ffc6 0d 0a		ALLSET:     DEFB    CR, LF          ; Line 1654  
-ffc8 ..			            DEFM    "ALL SET"       ; Line 1655  
-ffcf 04			            DEFB    EOT             ; Line 1656  
-ffd0 0d 0a		REGHDR:     DEFB    CR, LF          ; Line 1657  
-ffd2 ..			            DEFM    "FLAGS I A BC  DE  HL" ; Line 1658  
-ffe6 ..			            DEFM    "   IX   IY   SP   PC" ; Line 1659  
-fffa 04			            DEFB    EOT             ; Line 1660  
-fffb			 
-fffb			            END                     ; Line 1662 ; Formal End of Compiled Source Stream 
+f8d4			;            RET                     ; Line 0272  
+f8d4			;snip 
+f8d4			; ============================================================================== 
+f8d4			; Z80 ASSEMBLY SOURCE CODE - PART 6 OF 8 
+f8d4			; Source: MITSI Monitor for Tuscan System 1 
+f8d4			; Target Assembler: z80asm / z88dk 
+f8d4			; ============================================================================== 
+f8d4			 
+f8d4			; ------------------------------------------------------------------------------ 
+f8d4			; CONOUT - OUTPUT CHARACTER TO USERS CONSOLE 
+f8d4			; ------------------------------------------------------------------------------ 
+f8d4 d9			CONOUT:     EXX                     ; Line 0278 ; Swap to alternate registers 
+f8d5 f5			            PUSH    AF              ; Line 0279 ; Save output character 
+f8d6 fe 09		            CP      TAB             ; Line 0280 ; Is it a horizontal tab? 
+f8d8 20 0c		            JR      NZ,DISCH        ; Line 0281 ; No, output char directly 
+f8da 3e 20		TABON:      LD      A,SPAC          ; Line 0282 ; Load space character 
+f8dc cd ec f8		            CALL    CHOUT           ; Line 0283 ; Output space 
+f8df 3a 42 00		            LD      A,(CHCNT)       ; Line 0284 ; Check current cursor position 
+f8e2 e6 07		            AND     7               ; Line 0285 ; Is it a multiple of 8? 
+f8e4 20 f4		            JR      NZ,TABON        ; Line 0286 ; No, continue expanding tabs 
+f8e6 cd ec f8		DISCH:      CALL    CHOUT           ; Line 0287 ; Send character to output device 
+f8e9 f1			            POP     AF              ; Line 0288 ; Restore character 
+f8ea d9			            EXX                     ; Line 0289 ; Restore original registers 
+f8eb c9			            RET                     ; Line 0290  
+f8ec			 
+f8ec 4f			CHOUT:      LD      C,A             ; Line 0292 ; Cache character in C 
+f8ed cd 4e f8		            CALL    CONST           ; Line 0293 ; Check for pause requests (^S) 
+f8f0 79			            LD      A,C             ; Line 0294 ; Restore character 
+f8f1 cd 1f f9		            CALL    ACONOUT         ; Line 0295 ; Write to primary console hardware 
+f8f4 3a 7c 00		            LD      A,(PRNTSW)      ; Line 0296 ; Check external printer routing switch 
+f8f7 a7			            AND     A               ; Line 0297 ; Is the printer stream active? 
+f8f8 79			            LD      A,C             ; Line 0298 ; Restore character 
+f8f9 c4 a3 f9		            CALL    NZ,LIST         ; Line 0299 ; If active, mirror stream to printer 
+f8fc 21 42 00		            LD      HL,CHCNT        ; Line 0300 ; Pointer to stream column counter 
+f8ff fe 0a		            CP      LF              ; Line 0301 ; Is it a line feed? 
+f901 28 17		            JR      Z,ZERCNT        ; Line 0302 ; Reset column count if so 
+f903 fe 08		            CP      BS              ; Line 0303 ; Is it a backspace? 
+f905 28 16		            JR      Z,BACK          ; Line 0304 ; Decrement counter if so 
+f907 a7			            AND     A               ; Line 0305 ; Is it a null character? 
+f908 c8			            RET     Z               ; Line 0306 ; Ignore nulls 
+f909 fe 04		            CP      EOT             ; Line 0307 ; Is it end-of-transmission? 
+f90b c8			            RET     Z               ; Line 0308 ; Ignore EOTs 
+f90c e6 ef		            AND     $EF             ; Line 0309 ; Mask code space bits 
+f90e d6 0d		            SUB     CR              ; Line 0310 ; Is it a carriage return? 
+f910 28 08		            JR      Z,ZERCNT        ; Line 0311 ; Reset counter 
+f912 3d			            DEC     A               ; Line 0312 ; Is it an escape character? 
+f913 28 05		            JR      Z,ZERCNT        ; Line 0313 ; Reset counter 
+f915 3d			            DEC     A               ; Line 0314 ; Is it form feed or home cursor? 
+f916 28 02		            JR      Z,ZERCNT        ; Line 0315 ; Reset counter 
+f918 34			            INC     (HL)            ; Line 0316 ; Regular printable character, increment count 
+f919 c9			            RET                     ; Line 0317  
+f91a 36 00		ZERCNT:     LD      (HL),0          ; Line 0318 ; Clear column counter 
+f91c c9			            RET                     ; Line 0319  
+f91d 35			BACK:       DEC     (HL)            ; Line 0320 ; Step column counter back one step 
+f91e c9			            RET                     ; Line 0321  
+f91f			 
+f91f c5			ACONOUT:    PUSH    BC              ; Line 0323 ; Save work registers 
+f920 3a 03 00		            LD      A,(IOBYTE)      ; Line 0324 ; Read global I/O allocation mapping 
+f923 e6 30		            AND     $30             ; Line 0325 ; Extract console parameters 
+f925 28 66		            JR      Z,RSSTK         ; Line 0326 ; Route to serial line if zero 
+f927 fe 30		            CP      $30             ; Line 0327 ; Is it a memory-mapped display layout? 
+f929 28 73		            JR      Z,MMSTK         ; Line 0328 ; Route to memory-mapped VDU if so 
+f92b			;snip 
+f92b			; ============================================================================== 
+f92b			; Z80 ASSEMBLY SOURCE CODE - PART 7 OF 8 
+f92b			; Source: MITSI Monitor for Tuscan System 1 
+f92b			; Target Assembler: z80asm / z88dk 
+f92b			; ============================================================================== 
+f92b			 
+f92b 3d			VDUOUT:     DEC     A               ; Line 0329  
+f92c e6 7f		            AND     $7F             ; Line 0330 ; Bring strobe line low 
+f92e d3 02		            OUT     (VDU),A         ; Line 0331  
+f930 f6 80		            OR      $80             ; Line 0332 ; Pull strobe line high 
+f932 d3 02		            OUT     (VDU),A         ; Line 0333  
+f934 e6 7f		            AND     $7F             ; Line 0334 ; Clear strobe back to low 
+f936 d3 02		            OUT     (VDU),A         ; Line 0335  
+f938 fe 0c		            CP      FF              ; Line 0336 ; Is it a Form Feed command? 
+f93a 20 0b		            JR      NZ,NOHOME       ; Line 0337  
+f93c 06 84		HOME:       LD      B,132           ; Line 0338 ; Load 132ms padding delay value 
+f93e 97			CHAR0:      SUB     A               ; Line 0339 ; Reset accumulator to 0 
+f93f 32 41 00		            LD      (CURPOS),A      ; Line 0340 ; Zero VDU screen cursor position 
+f942 cd 78 f9		VDUDEL:     CALL    DBMS            ; Line 0341 ; Process execution timing delay 
+f945 c1			RESTRI:     POP     BC              ; Line 0342 ; Restore workspace registers 
+f946 c9			            RET                     ; Line 0343  
+f947 fe 0d		NOHOME:     CP      CR              ; Line 0344 ; Is it a Carriage Return? 
+f949 06 0f		            LD      B,15            ; Line 0345 ; Load 15ms command execution delay 
+f94b 28 f1		            JR      Z,CHAR0         ; Line 0346  
+f94d 79			            LD      A,C             ; Line 0347 ; Retrieve cached character byte 
+f94e a7			            AND     A               ; Line 0348 ; Check for non-printing null character 
+f94f 28 17		            JR      Z,US80          ; Line 0349  
+f951 fe 04		            CP      EOT             ; Line 0350 ; Is it an End of Transmission character? 
+f953 28 13		            JR      Z,US80          ; Line 0351  
+f955 fe 0a		            CP      LF              ; Line 0352 ; Is it a Line Feed character? 
+f957 28 e9		            JR      Z,VDUDEL        ; Line 0353 ; Branch to timing padding delay routine 
+f959 fe 1b		            CP      ESC             ; Line 0354 ; Is it an Escape character? 
+f95b 28 e5		            JR      Z,VDUDEL        ; Line 0355 ; Branch to loop delay for screen scrolling 
+f95d 3a 41 00		            LD      A,(CURPOS)      ; Line 0356 ; Load current screen column index 
+f960 3c			            INC     A               ; Line 0357  
+f961 fe 40		            CP      64              ; Line 0358 ; Does row reach terminal boundary (64 chars)? 
+f963 28 d9		            JR      Z,CHAR0         ; Line 0359 ; Yes, execute automatic CRLF loop reset 
+f965 32 41 00		            LD      (CURPOS),A      ; Line 0360 ; Update tracking index register cache 
+f968 3a 03 00		US80:       LD      A,(IOBYTE)      ; Line 0361 ; Check CPU clock configuration settings 
+f96b e6 30		            AND     $30             ; Line 0362  
+f96d fe 20		            CP      $20             ; Line 0363 ; Is system running at 4MHz speed? 
+f96f 20 d4		            JR      NZ,RESTRI       ; Line 0364 ; 2MHz profile, skip extra loop padding 
+f971 3e 08		            LD      A,8             ; Line 0365 ; Initialize ~40 microseconds loop counter 
+f973 3d			US40:       DEC     A               ; Line 0366  
+f974 20 fd		            JR      NZ,US40         ; Line 0367  
+f976 18 cd		            JR      RESTRI          ; Line 0368  
+f978			 
+f978			; ------------------------------------------------------------------------------ 
+f978			; DBMS - MULTI-SPEED MILLISECOND DELAY GENERATOR LOOP 
+f978			; ------------------------------------------------------------------------------ 
+f978 f5			DBMS:       PUSH    AF              ; Line 0370  
+f979 3a 03 00		DIMS:       LD      A,(IOBYTE)      ; Line 0371  
+f97c e6 30		            AND     $30             ; Line 0372 ; Isolate speed metrics bits 
+f97e fe 20		            CP      $20             ; Line 0373 ; Is it 4MHz operation? 
+f980 3e f6		            LD      A,246           ; Line 0374 ; Load counter state value for 4MHz 
+f982 28 02		            JR      Z,DLOOP         ; Line 0375  
+f984 3e 79		            LD      A,121           ; Line 0376 ; Load counter state value for 2MHz 
+f986 3d			DLOOP:      DEC     A               ; Line 0377  
+f987 20 fd		            JR      NZ,DLOOP        ; Line 0378  
+f989 10 ee		            DJNZ    DIMS            ; Line 0379 ; Loop through execution blocks B times 
+f98b f1			            POP     AF              ; Line 0380  
+f98c c9			            RET                     ; Line 0381  
+f98d			 
+f98d db 06		RSSTK:      IN      A,(RSHS)        ; Line 0383 ; Read serial handshake line state 
+f98f e6 01		            AND     $01             ; Line 0384  
+f991 28 fa		            JR      Z,RSSTK         ; Line 0385 ; Wait if hardware interface states busy 
+f993 db 00		            IN      A,(RSS)         ; Line 0386 ; Pull UART internal buffer flags 
+f995 e6 10		            AND     $10             ; Line 0387 ; Check Transmitter Buffer Empty flag 
+f997 28 f4		            JR      Z,RSSTK         ; Line 0388 ; Loop if transmit shift path full 
+f999 79			            LD      A,C             ; Line 0389 ; Retrieve cached data byte 
+f99a d3 00		            OUT     (RSDO),A        ; Line 0390 ; Route byte out to RS232 port interface 
+f99c c1			            POP     BC              ; Line 0391  
+f99d c9			            RET                     ; Line 0392  
+f99e			 
+f99e cd 00 d4		MMSTK:      CALL    MMOUT           ; Line 0394 ; Route to custom memory mapped display driver 
+f9a1 c1			            POP     BC              ; Line 0395  
+f9a2 c9			            RET                     ; Line 0396  
+f9a3			 
+f9a3 c5			LIST:       PUSH    BC              ; Line 0403  
+f9a4 4f			            LD      C,A             ; Line 0404  
+f9a5 3a 03 00		            LD      A,(IOBYTE)      ; Line 0405 ; Read current configuration vector 
+f9a8 e6 c0		            AND     $C0             ; Line 0406 ; Extract destination printer stream codes 
+f9aa 28 e1		            JR      Z,RSSTK         ; Line 0407 ; Route to serial data line channel 
+f9ac fe 40		            CP      $40             ; Line 0408 ; Is onboard VDU terminal designated? 
+f9ae ca 2b f9		            JP      Z,VDUOUT        ; Line 0409 ; Jump directly to active hardware output 
+f9b1 db 07		WTPHS:      IN      A,(PRINTHS)     ; Line 0410 ; Query parallel hardware interface pin status 
+f9b3 e6 01		            AND     $01             ; Line 0411  
+f9b5 20 fa		            JR      NZ,WTPHS        ; Line 0412 ; Wait if Centronics printer line busy 
+f9b7 79			            LD      A,C             ; Line 0413 ; Load data byte 
+f9b8 d3 03		            OUT     (PRINT),A       ; Line 0414 ; Write character to printer data lines 
+f9ba af			            XOR     A               ; Line 0415  
+f9bb d3 07		            OUT     (PRINTST),A     ; Line 0416 ; Bring print data strobe line low 
+f9bd 2f			            CPL                     ; Line 0417  
+f9be d3 07		            OUT     (PRINTST),A     ; Line 0418 ; Return printer strobe to high level 
+f9c0 79			            LD      A,C             ; Line 0419  
+f9c1 c1			            POP     BC              ; Line 0420  
+f9c2 c9			            RET                     ; Line 0421  
+f9c3			; snip 
+f9c3			; ============================================================================== 
+f9c3			; Z80 ASSEMBLY SOURCE CODE - PART 8 OF 8 (FINAL SECTION) 
+f9c3			; Source: MITSI Monitor for Tuscan System 1 
+f9c3			; Target Assembler: z80asm / z88dk 
+f9c3			; ============================================================================== 
+f9c3			 
+f9c3			; ------------------------------------------------------------------------------ 
+f9c3			; PUNHL - OUTPUT THE DOUBLE BYTE IN HL TO TAPE 
+f9c3			; ------------------------------------------------------------------------------ 
+f9c3 7d			PUNHL:      LD      A,L             ; Line 0428 ; Send low byte <L> first 
+f9c4 cd c8 f9		            CALL    PUNCH           ; Line 0429  
+f9c7 7c			            LD      A,H             ; Line 0430 ; Prepare high byte <H> next 
+f9c8			                                    ; Line 0431 ; Fall straight into PUNCH 
+f9c8			 
+f9c8			; ------------------------------------------------------------------------------ 
+f9c8			; PUNCH - OUTPUT BYTE TO MODEM (TAPE DATA LINK) 
+f9c8			; ------------------------------------------------------------------------------ 
+f9c8 f5			PUNCH:      PUSH    AF              ; Line 0437 ; Cache target output data byte 
+f9c9 db 02		PUNCH1:     IN      A,(TAPES)       ; Line 0438 ; Pull tape control status register 
+f9cb e6 10		            AND     $10             ; Line 0439 ; Is Transmitter Buffer Empty true? 
+f9cd 28 fa		            JR      Z,PUNCH1        ; Line 0440 ; Loop if transmit channel is busy 
+f9cf f1			            POP     AF              ; Line 0441 ; Restore target data byte 
+f9d0 d3 01		            OUT     (TAPEDO),A      ; Line 0442 ; Send byte to serial tape output port 
+f9d2 c9			            RET                     ; Line 0443  
+f9d3			 
+f9d3			; ------------------------------------------------------------------------------ 
+f9d3			; READER - ROUTINE TO EXTRACT DATA BYTE FROM MODEM LINK 
+f9d3			; ------------------------------------------------------------------------------ 
+f9d3 db 02		READER:     IN      A,(TAPES)       ; Line 0450 ; Read tape serial link status flags 
+f9d5 e6 01		            AND     $01             ; Line 0451 ; Is Data Available flag asserted? 
+f9d7 28 fa		            JR      Z,READER        ; Line 0452 ; Loop until link receive latch completes 
+f9d9 db 03		            IN      A,(TAPEDI)      ; Line 0453 ; Pull waiting byte from hardware port 
+f9db c9			            RET                     ; Line 0454  
+f9dc			 
+f9dc			; ------------------------------------------------------------------------------ 
+f9dc			; GETBUF - INITIALIZE AND HOOK LINE INPUT WORKING BUFFER Footprint 
+f9dc			; ------------------------------------------------------------------------------ 
+f9dc 11 86 00		GETBUF:     LD      DE,INBUFF+1     ; Line 0462 ; Establish structural pointer to text zone 
+f9df ed 53 46 00	            LD      (BUFPTR),DE     ; Line 0463 ; Reset working scan tracking register pointer 
+f9e3 1b			            DEC     DE              ; Line 0464  
+f9e4 3e 50		            LD      A,BUFSIZ        ; Line 0465 ; Load maximum baseline buffer size 
+f9e6 12			            LD      (DE),A          ; Line 0466 ; Write length byte limit descriptor into array 
+f9e7			;add missing 
+f9e7			; ============================================================================== 
+f9e7			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART A 
+f9e7			; Core Function: Console Line Buffer Entry, Delete, and Controls 
+f9e7			; ============================================================================== 
+f9e7			 
+f9e7			; ------------------------------------------------------------------------------ 
+f9e7			; BUFFIN - ROUTINE TO READ A LINE INTO AN INPUT BUFFER 
+f9e7			; ------------------------------------------------------------------------------ 
+f9e7 eb			BUFFIN:     EX      DE,HL           ; Line 0484 ; HL=PTR TO BUFFER 
+f9e8 4e			            LD      C,(HL)          ; Line 0485 ; C=MAX BUFFER LENGTH 
+f9e9 0d			            DEC     C               ; Line 0486 ; ALLOW FOR <CR> 
+f9ea 3a 42 00		            LD      A,(CHCNT)       ; Line 0487 ; GET END OF PROMPT POS 
+f9ed 32 43 00		            LD      (PRMP),A        ; Line 0488 ; REMEMBER IT FOR DELTAB 
+f9f0 22 44 00		            LD      (BUFAD),HL      ; Line 0489 ; PTR TO TEXT AREA 
+f9f3 06 00		LINLOOP:    LD      B,0             ; Line 0490 ; B=CURRENT LENGTH=0 
+f9f5 cd 8a f8		CHLOOP:     CALL    CONIN           ; Line 0491 ; GET CHARACTER 
+f9f8 fe 0a		            CP      LF              ; Line 0492 ; LF? 
+f9fa 28 59		            JR      Z,GOTBUF        ; Line 0493 ; YES, DONE 
+f9fc fe 0d		            CP      CR              ; Line 0494 ; CR? 
+f9fe 28 55		            JR      Z,GOTBUF        ; Line 0495 ; YES, DONE 
+fa00 fe 7f		            CP      DEL             ; Line 0496 ; DELETE? 
+fa02 20 10		            JR      NZ,NODEL        ; Line 0497  
+fa04 78			DELET:      LD      A,B             ; Line 0498 ; GET CURRENT BUFF LENGTH 
+fa05 b7			            OR      A               ; Line 0499 ; =0? 
+fa06 28 ed		            JR      Z,CHLOOP        ; Line 0500 ; YES, IGNORE 
+fa08 7e			            LD      A,(HL)          ; Line 0501 ; GET CHAR TO DELETE 
+fa09 05			            DEC     B               ; Line 0502 ; BACKUP CTR & PTR 
+fa0a 2b			            DEC     HL              ; Line 0503  
+fa0b e5			            PUSH    HL              ; Line 0504  
+fa0c c5			            PUSH    BC              ; Line 0505  
+fa0d cd 59 fa		            CALL    DELETE          ; Line 0506 ; DO DELETION 
+fa10 c1			            POP     BC              ; Line 0507  
+fa11 e1			            POP     HL              ; Line 0508  
+fa12 18 e1		            JR      CHLOOP          ; Line 0509 ; GET REPLACEMENT 
+fa14 fe 08		NODEL:      CP      BS              ; Line 0510 ; BS? 
+fa16 28 ec		            JR      Z,DELET         ; Line 0511 ; TREAT AS DELETE 
+fa18 fe 15		            CP      $15             ; Line 0512 ; ^U? 
+fa1a 20 11		            JR      NZ,NOCAN        ; Line 0513 ; NO 
+fa1c 3a 43 00		LINDEL:     LD      A,(PRMP)        ; Line 0514 ; FIND PROMPT POSITION 
+fa1f 21 42 00		            LD      HL,CHCNT        ; Line 0515 ; PTR TO CURSOR NOW 
+fa22 be			            CP      (HL)            ; Line 0516 ; SAME? 
+fa23 2a 44 00		            LD      HL,(BUFAD)      ; Line 0517 ; RESET BUFFER PTR 
+fa26 30 cb		            JR      NC,LINLOOP      ; Line 0518  
+fa28 cd 96 fa		            CALL    ERA             ; Line 0519 ; NO, DELETE ONE CHAR 
+fa2b 18 ef		            JR      LINDEL          ; Line 0520  
+fa2d fe 10		NOCAN:      CP      $10             ; Line 0521 ; ^P? 
+fa2f 20 08		            JR      NZ,NOTOG        ; Line 0522  
+fa31 11 7c 00		            LD      DE,PRNTSW       ; Line 0523 ; PTR TO SWITCH 
+fa34 1a			TOGSW:      LD      A,(DE)          ; Line 0524 ; GET IT 
+fa35 2f			            CPL                     ; Line 0525 ; TOGGLE IT 
+fa36 12			            LD      (DE),A          ; Line 0526  
+fa37 18 bc		            JR      CHLOOP          ; Line 0527 ; GET NEXT CHAR 
+fa39 fe 01		NOTOG:      CP      $01             ; Line 0528 ; ^A (ALPHA LOCK)? 
+fa3b 20 05		            JR      NZ,NOLOCK       ; Line 0529 ; NO 
+fa3d 11 7d 00		            LD      DE,LOCKSW       ; Line 0530 ; GET SWITCH 
+fa40 18 f2		            JR      TOGSW           ; Line 0531 ; TOGGLE SWITCH 
+fa42 23			NOLOCK:     INC     HL              ; Line 0532 ; MUST BE ORDINARY CHAR 
+fa43 77			            LD      (HL),A          ; Line 0533 ; SAVE IT IN BUFF 
+fa44 cd d4 f8		            CALL    CONOUT          ; Line 0534 ; ECHO CHAR 
+fa47 04			            INC     B               ; Line 0535 ; BUMP CTR 
+fa48 fe 03		            CP      ETX             ; Line 0536 ; ^C? 
+fa4a 78			            LD      A,B             ; Line 0537 ; FIRST CHARACTER? 
+fa4b 20 05		            JR      NZ,LENTST       ; Line 0538 ; NOT ^C 
+fa4d fe 01		            CP      1               ; Line 0539  
+fa4f ca 38 00		            JP      Z,RST7          ; Line 0540 ; RESTART IF SO 
+fa52 b9			LENTST:     CP      C               ; Line 0541 ; BUFFER FULL? 
+fa53 38 a0		            JR      C,CHLOOP        ; Line 0542 ; NO 
+fa55 23			GOTBUF:     INC     HL              ; Line 0543 ; PTR TO NEXT FREE 
+fa56 36 0d		            LD      (HL),CR         ; Line 0544 ; MARK END OF BUFFER 
+fa58 c9			            RET                     ; Line 0545  
+fa59			 
+fa59 a7			DELETE:     AND     A               ; Line 0547 ; NULL? 
+fa5a c8			            RET     Z               ; Line 0548 ; IGNORE 
+fa5b fe 04		            CP      EOT             ; Line 0549 ; EOT? 
+fa5d c8			            RET     Z               ; Line 0550  
+fa5e 4f			            LD      C,A             ; Line 0551 ; SAVE CHAR 
+fa5f e6 ef		            AND     $EF             ; Line 0552 ; MASK OUT BIT 4 
+fa61 fe 0b		            CP      $0B             ; Line 0553 ; ESC? 
+fa63 c8			            RET     Z               ; Line 0554  
+fa64 fe 0c		            CP      FF              ; Line 0555  
+fa66 c8			            RET     Z               ; Line 0556  
+fa67 79			            LD      A,C             ; Line 0557 ; RESTORE CHAR 
+fa68 e1			            POP     HL              ; Line 0558 ; UNSTACK RETURN ADDR 
+fa69 c1			            POP     BC              ; Line 0559 ; TO GET AT BC 
+fa6a c5			            PUSH    BC              ; Line 0560 ; B = CHARS IN BUFFER 
+fa6b e5			            PUSH    HL              ; Line 0561 ; STACK RESTORED 
+fa6c 2a 44 00		            LD      HL,(BUFAD)      ; Line 0562 ; GET BUFFER ADDRESS 
+fa6f 3a 43 00		            LD      A,(PRMP)        ; Line 0563 ; GET END OF PROMPT 
+fa72 4f			            LD      C,A             ; Line 0564 ; C=CURSOR POSITION AFTER DELETE 
+fa73 78			CALPOS:     LD      A,B             ; Line 0565 ; SEE IF MORE CHARS TO DELETE 
+fa74 a7			            AND     A               ; Line 0566  
+fa75 28 0b		            JR      Z,DELCNT        ; Line 0567 ; NO, SEE HOW FAR TO BS 
+fa77 23			            INC     HL              ; Line 0568 ; BUMP PTR 
+fa78 7e			            LD      A,(HL)          ; Line 0569 ; GET CHAR FROM BUFFER 
+fa79 05			            DEC     B               ; Line 0570 ; DEC COUNT TO BE READ 
+fa7a 0c			            INC     C               ; Line 0571 ; BUMP NEW POSITION 
+fa7b fe 09		            CP      TAB             ; Line 0572 ; IS THIS A TAB? 
+fa7d cc 8f fa		            CALL    Z,TABPOS        ; Line 0573 ; YES, MOVE TO NEXT TAB 
+fa80 18 f1		            JR      CALPOS          ; Line 0574 ; YES 
+fa82 3a 42 00		DELCNT:     LD      A,(CHCNT)       ; Line 0575 ; GET OLD CURSOR POSITION 
+fa85 91			            SUB     C               ; Line 0576 ; SUBTRACT NEW, A = CHARS TO BACKUP 
+fa86 f5			ERACH:      PUSH    AF              ; Line 0577 ; BACK SPACE 
+fa87 cd 96 fa		            CALL    ERA             ; Line 0578  
+fa8a f1			            POP     AF              ; Line 0579  
+fa8b 3d			            DEC     A               ; Line 0580 ; UNTIL A=0 
+fa8c 20 f8		            JR      NZ,ERACH        ; Line 0581  
+fa8e c9			            RET                     ; Line 0582  
+fa8f			 
+fa8f 79			TABPOS:     LD      A,C             ; Line 0583 ; GET CURSOR POSITION 
+fa90 e6 f8		            AND     $F8             ; Line 0584 ; STRIP OFF LS 3 BITS 
+fa92 c6 08		            ADD     A,8             ; Line 0585 ; MOVE TO NEXT TAB 
+fa94 4f			            LD      C,A             ; Line 0586  
+fa95 c9			            RET                     ; Line 0587  
+fa96 cd 9c fa		ERA:        CALL    BACKSP          ; Line 0588 ; BACKSPACE 
+fa99 cd 94 fc		            CALL    SPACE           ; Line 0589 ; SPACE TO ERASE 
+fa9c 3e 08		BACKSP:     LD      A,BS            ; Line 0590 ; BACKSPACE 
+fa9e c3 ec f8		            JP      CHOUT           ; Line 0591  
+faa1			 
+faa1 f5			BUFFOUT:    PUSH    AF              ; Line 0600  
+faa2 1a			BUFF1:      LD      A,(DE)          ; Line 0601 ; GET CHAR 
+faa3 cd d4 f8		            CALL    CONOUT          ; Line 0602 ; PRINT IT 
+faa6 13			            INC     DE              ; Line 0603 ; BUMP PTR 
+faa7 fe 04		            CP      EOT             ; Line 0604 ; END? 
+faa9 20 f7		            JR      NZ,BUFF1        ; Line 0605 ; NO 
+faab f1			            POP     AF              ; Line 0606  
+faac c9			            RET                     ; Line 0607  
+faad cd a1 fa		BUFFCR:     CALL    BUFFOUT         ; Line 0609 ; PRINT STRING 
+fab0 f5			CRLF:       PUSH    AF              ; Line 0618  
+fab1 3e 0d		            LD      A,CR            ; Line 0619  
+fab3 cd d4 f8		            CALL    CONOUT          ; Line 0620  
+fab6 3e 0a		            LD      A,LF            ; Line 0621  
+fab8 cd d4 f8		            CALL    CONOUT          ; Line 0622  
+fabb f1			            POP     AF              ; Line 0623  
+fabc c9			            RET                     ; Line 0624  
+fabd			;snip 
+fabd			; ============================================================================== 
+fabd			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART B1 OF 4 
+fabd			; Core Function: Tape System Layout Entry and Data File Export Channels 
+fabd			; ============================================================================== 
+fabd			 
+fabd			; ------------------------------------------------------------------------------ 
+fabd			; WRITE - FUNCTION TO SAVE A TARGET FILE TO TAPE STAGE LINK 
+fabd			; ------------------------------------------------------------------------------ 
+fabd cd 53 fc		WRITE:      CALL    PCHECK          ; Line 0632 ; Load parameters 1 and 2 
+fac0 fe 2c		            CP      ','             ; Line 0633 ; Verify comma separator holds 
+fac2 c2 de fb		WERR:       JP      NZ,PARER        ; Line 0634  
+fac5 3a 4e 00		            LD      A,(NPARS)       ; Line 0635 ; Verify exact argument volume count 
+fac8 fe 02		            CP      2               ; Line 0636  
+faca 20 f6		            JR      NZ,WERR         ; Line 0637  
+facc 2a 4c 00		            LD      HL,(PAR2)       ; Line 0638  
+facf eb			            EX      DE,HL           ; Line 0639 ; DE = End Address limit bounds 
+fad0 2a 46 00		            LD      HL,(BUFPTR)     ; Line 0640  
+fad3 44			            LD      B,H             ; Line 0641  
+fad4 4d			            LD      C,L             ; Line 0642 ; BC = Primary file identifier string 
+fad5 2a 4a 00		            LD      HL,(PAR1)       ; Line 0643 ; HL = Start Address origin point 
+fad8			 
+fad8 d5			FILOUT:     PUSH    DE              ; Line 0662 ; Cache file limit boundary address 
+fad9 cd 17 fb		            CALL    BLANK           ; Line 0663 ; Dump padding delay leader line tape 
+fadc 1e 40		            LD      E,64            ; Line 0664 ; Load structural block byte count 
+fade 3e 0d		            LD      A,CR            ; Line 0665 ; Leader byte layout value token 
+fae0 cd c8 f9		OUTLDR:     CALL    PUNCH           ; Line 0666 ; Transmit leader tracking sequence 
+fae3 1d			            DEC     E               ; Line 0667  
+fae4 20 fa		            JR      NZ,OUTLDR       ; Line 0668 ; Loop until entire frame clears 
+fae6 af			            XOR     A               ; Line 0669 ; Clear terminal sync marker byte 
+fae7 cd c8 f9		            CALL    PUNCH           ; Line 0670  
+faea c5			            PUSH    BC              ; Line 0671 ; Preserve file name string reference 
+faeb 0a			GETLEN:     LD      A,(BC)          ; Line 0672 ; Extract description byte segment 
+faec 1c			            INC     E               ; Line 0673 ; Increment calculated text length counter 
+faed 03			            INC     BC              ; Line 0674  
+faee fe 0d		            CP      CR              ; Line 0675 ; End indicator discovered? 
+faf0 20 f9		            JR      NZ,GETLEN       ; Line 0676 ; Continue calculation until complete 
+faf2 1d			            DEC     E               ; Line 0677 ; Normalize text payload balance 
+faf3 7b			            LD      A,E             ; Line 0678  
+faf4 cd c8 f9		            CALL    PUNCH           ; Line 0679 ; Transmit header text string volume count 
+faf7 c1			            POP     BC              ; Line 0680 ; Restore directory lookup text link 
+faf8 0a			OUTHDR:     LD      A,(BC)          ; Line 0681 ; Read filename character segment 
+faf9 cd c8 f9		            CALL    PUNCH           ; Line 0682 ; Transmit to system file record 
+fafc 03			            INC     BC              ; Line 0683  
+fafd 1d			            DEC     E               ; Line 0684 ; Continue processing block space characters 
+fafe 20 f8		            JR      NZ,OUTHDR       ; Line 0685  
+fb00 3e 01		            LD      A,1             ; Line 0686 ; Identify system target file structure as absolute 
+fb02 cd c8 f9		            CALL    PUNCH           ; Line 0687  
+fb05 cd c3 f9		            CALL    PUNHL           ; Line 0688 ; Transmit starting address metadata field 
+fb08 e3			            EX      (SP),HL         ; Line 0689 ; Extract file ending address limit bound 
+fb09 cd c3 f9		            CALL    PUNHL           ; Line 0690 ; Transmit closing frame boundary 
+fb0c d1			            POP     DE              ; Line 0691 ; DE=Start Address, HL=End Address bounds 
+fb0d 1a			OUTDATA:    LD      A,(DE)          ; Line 0693 ; Extract data payload byte segment 
+fb0e cd c8 f9		            CALL    PUNCH           ; Line 0694 ; Write byte to audio stream layer 
+fb11 cd 24 fb		            CALL    DPCMP           ; Line 0695 ; Compare loop memory offset markers 
+fb14 13			            INC     DE              ; Line 0696  
+fb15 20 f6		            JR      NZ,OUTDATA      ; Line 0697 ; Loop until memory array maps fully 
+fb17			 
+fb17 c5			BLANK:      PUSH    BC              ; Line 0698  
+fb18 0e 28		            LD      C,40            ; Line 0699 ; Pad delay operational interval frame loop 
+fb1a 06 fa		D250:       LD      B,250           ; Line 0700  
+fb1c cd 78 f9		            CALL    DBMS            ; Line 0701 ; Run delay generator 
+fb1f 0d			            DEC     C               ; Line 0702  
+fb20 20 f8		            JR      NZ,D250         ; Line 0703  
+fb22 c1			            POP     BC              ; Line 0704  
+fb23 c9			            RET                     ; Line 0705  
+fb24			 
+fb24 e5			DPCMP:      PUSH    HL              ; Line 0712 ; Preserve register values 
+fb25 b7			            OR      A               ; Line 0713 ; Clear Carry flag indicators 
+fb26 ed 52		            SBC     HL,DE           ; Line 0714 ; Execute word compare subtraction loop 
+fb28 e1			            POP     HL              ; Line 0715  
+fb29 c9			            RET                     ; Line 0716  
+fb2a			;snip 
+fb2a			; ============================================================================== 
+fb2a			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART B2 OF 4 
+fb2a			; Core Function: Tape Audio Demodulator Sync and File Import Loops 
+fb2a			; ============================================================================== 
+fb2a			 
+fb2a			; ------------------------------------------------------------------------------ 
+fb2a			; READ - FUNCTION TO RETRIEVE AND PARSE FILE PAYLOADS FROM TAPE 
+fb2a			; ------------------------------------------------------------------------------ 
+fb2a 2a 46 00		READ:       LD      HL,(BUFPTR)     ; Line 0732 ; Pull file lookup parameters 
+fb2d 44			            LD      B,H             ; Line 0733  
+fb2e 4d			            LD      C,L             ; Line 0734 ; Target file name string in BC 
+fb2f			 
+fb2f 60			FILIN:      LD      H,B             ; Line 0745 ; Match lookup index reference 
+fb30 69			            LD      L,C             ; Line 0746  
+fb31 22 44 00		            LD      (BUFAD),HL      ; Line 0747  
+fb34 11 b7 ff		            LD      DE,TPROMP       ; Line 0748 ; Print scan status banner 
+fb37 cd a1 fa		            CALL    BUFFOUT         ; Line 0749  
+fb3a cd b0 fa		GETFIL:     CALL    CRLF            ; Line 0750  
+fb3d 2a 44 00		            LD      HL,(BUFAD)      ; Line 0751 ; Restore active string pointer 
+fb40 06 20		GETLDR:     LD      B,32            ; Line 0752 ; Require 32 leader sync bytes 
+fb42 cd d3 f9		GETLD:      CALL    READER          ; Line 0753 ; Pull byte from tape interface 
+fb45 fe 0d		            CP      CR              ; Line 0754 ; Is leader code correct? 
+fb47 20 f7		            JR      NZ,GETLDR       ; Line 0755 ; Sync lost, re-initialize scan 
+fb49 05			            DEC     B               ; Line 0756  
+fb4a 20 f6		            JR      NZ,GETLD        ; Line 0757 ; Confirm leader block matches 
+fb4c cd d3 f9		WAITMRK:    CALL    READER          ; Line 0758 ; Look for end-of-leader mark 
+fb4f a7			            AND     A               ; Line 0759 ; Is value zero (00H)? 
+fb50 20 fa		            JR      NZ,WAITMRK      ; Line 0760  
+fb52 cd d3 f9		            CALL    READER          ; Line 0761 ; Extract header length byte 
+fb55 47			            LD      B,A             ; Line 0762  
+fb56 cd d3 f9		GETHDR:     CALL    READER          ; Line 0763 ; Read tape filename character 
+fb59 cd d4 f8		            CALL    CONOUT          ; Line 0764 ; Print character to screen 
+fb5c be			            CP      (HL)            ; Line 0765 ; Match active search target? 
+fb5d 20 31		            JR      NZ,PRTHDR       ; Line 0766 ; Discrepancy found, dump frame 
+fb5f 05			            DEC     B               ; Line 0767  
+fb60 23			            INC     HL              ; Line 0768 ; Advance parameter index pointer 
+fb61 20 f3		            JR      NZ,GETHDR       ; Line 0769 ; Loop until filename field ends 
+fb63 7e			            LD      A,(HL)          ; Line 0770 ; Verify clean closing parameter 
+fb64 fe 0d		            CP      CR              ; Line 0771  
+fb66 20 d2		            JR      NZ,GETFIL       ; Line 0772 ; Length error, drop back to loop 
+fb68 af			            XOR     A               ; Line 0773  
+fb69 32 4a 00		            LD      (PAR1),A        ; Line 0774 ; Reset error status tracker flag 
+fb6c cd d3 f9		            CALL    READER          ; Line 0775 ; Discard file type descriptor 
+fb6f cd c2 f8		            CALL    TAPE            ; Line 0776 ; Pull load address low byte 
+fb72 6f			            LD      L,A             ; Line 0777  
+fb73 cd c2 f8		            CALL    TAPE            ; Line 0778 ; Pull load address high byte 
+fb76 67			            LD      H,A             ; Line 0779  
+fb77 e5			            PUSH    HL              ; Line 0780 ; Save memory load target vector 
+fb78 cd c2 f8		            CALL    TAPE            ; Line 0781 ; Pull file end boundary low byte 
+fb7b 5f			            LD      E,A             ; Line 0782  
+fb7c cd c2 f8		            CALL    TAPE            ; Line 0783 ; Pull file end boundary high byte 
+fb7f 57			            LD      D,A             ; Line 0784  
+fb80 cd c2 f8		LDFIL:      CALL    TAPE            ; Line 0785 ; Read data payload byte segment 
+fb83 77			            LD      (HL),A          ; Line 0786 ; Write byte directly to system RAM 
+fb84 cd 24 fb		            CALL    DPCMP           ; Line 0787 ; Terminal boundaries reach parity? 
+fb87 23			            INC     HL              ; Line 0788 ; Advance memory writing pointer 
+fb88 20 f6		            JR      NZ,LDFIL        ; Line 0789 ; Repeat write until file ends 
+fb8a e1			            POP     HL              ; Line 0790 ; Restore starting address vector 
+fb8b 3a 4a 00		            LD      A,(PAR1)        ; Line 0791 ; Check checksum transmission status 
+fb8e a7			            AND     A               ; Line 0792 ; Evaluate flags matrix result 
+fb8f c9			            RET                     ; Line 0793  
+fb90 05			PRTHDR:     DEC     B               ; Line 0795 ; Complete stream dump sequence 
+fb91 28 a7		            JR      Z,GETFIL        ; Line 0796 ; Balance failed, jump to next file 
+fb93 cd d3 f9		            CALL    READER          ; Line 0797 ; Read remaining text byte field 
+fb96 cd d4 f8		            CALL    CONOUT          ; Line 0798 ; Flush character out to screen 
+fb99 18 f5		            JR      PRTHDR          ; Line 0799 ; Complete line printout loop 
+fb9b			;snip 
+fb9b			; ============================================================================== 
+fb9b			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART B3 OF 4 
+fb9b			; Core Function: Character Scanner Parsing Loops and Validation Filters 
+fb9b			; ============================================================================== 
+fb9b			 
+fb9b e5			GETCH:      PUSH    HL              ; Line 0808  
+fb9c 2a 46 00		            LD      HL,(BUFPTR)     ; Line 0809 ; Extract active parsing line pointer 
+fb9f 7e			            LD      A,(HL)          ; Line 0810 ; Pull targeted working character 
+fba0 23			            INC     HL              ; Line 0811 ; Advance token pointer to next element 
+fba1 22 46 00		            LD      (BUFPTR),HL     ; Line 0812 ; Save updated scan tracking address vector 
+fba4 e1			            POP     HL              ; Line 0813  
+fba5 c9			            RET                     ; Line 0814  
+fba6			 
+fba6			; ------------------------------------------------------------------------------ 
+fba6			; GETUCT - EXTRACT CHARACTER FROM STREAM AND VALIDATE TERMINATION LOGIC 
+fba6			; ------------------------------------------------------------------------------ 
+fba6 cd 9b fb		GETUCT:     CALL    GETCH           ; Line 0825 ; Extract byte from execution line buffer 
+fba9 cd b0 f8		            CALL    UCMASK          ; Line 0826 ; Translate value to uppercase spectrum 
+fbac fe 2c		TERM:       CP      ','             ; Line 0827 ; Delimiter character matched? 
+fbae 37			            SCF                     ; Line 0828  
+fbaf c8			            RET     Z               ; Line 0829 ; Return true with Carry active if comma found 
+fbb0 fe 0d		            CP      CR              ; Line 0830 ; End of text command line discovered? 
+fbb2 37			            SCF                     ; Line 0831  
+fbb3 c8			            RET     Z               ; Line 0832 ; Return true with Carry active if line finished 
+fbb4 fe 5e		            CP      '^'             ; Line 0833 ; Step-back navigational indicator discovered? 
+fbb6 37			            SCF                     ; Line 0834  
+fbb7 c8			            RET     Z               ; Line 0835 ; Return true with Carry active if backstep set 
+fbb8 3f			            CCF                     ; Line 0836 ; No match, reset Carry parameter state to zero 
+fbb9 c9			            RET                     ; Line 0837  
+fbba			 
+fbba cd a6 fb		GETDEC:     CALL    GETUCT          ; Line 0852 ; Extract character segment parameter 
+fbbd d8			            RET     C               ; Line 0853 ; Return immediately if boundary delimiter found 
+fbbe d6 30		DECCHK:     SUB     '0'             ; Line 0854 ; Strip decimal base formatting bias character code 
+fbc0 38 1c		            JR      C,PARER         ; Line 0855 ; Less than zero ascii, syntax exception error 
+fbc2 fe 0a		            CP      9+1             ; Line 0856 ; Check value limits boundaries 
+fbc4 3f			            CCF                     ; Line 0857  
+fbc5 d0			            RET     NC              ; Line 0858 ; Balanced value processed completely, return integer 
+fbc6 18 16		            JR      PARER           ; Line 0859  
+fbc8			 
+fbc8 cd a6 fb		GETHEX:     CALL    GETUCT          ; Line 0861 ; Retrieve tracking character text parameter 
+fbcb d8			            RET     C               ; Line 0862 ; Return instantly if line delimiter found 
+fbcc d6 30		HEXCHK:     SUB     '0'             ; Line 0863 ; Evaluate alphanumeric character layout parameters 
+fbce 38 0e		            JR      C,PARER         ; Line 0864  
+fbd0 fe 0a		            CP      9+1             ; Line 0865  
+fbd2 3f			            CCF                     ; Line 0866  
+fbd3 d0			            RET     NC              ; Line 0867 ; Return value segment if digit matches 0-9 
+fbd4 d6 07		            SUB     'A'-'0'-10      ; Line 0868 ; Convert character formatting logic hex bias code 
+fbd6 fe 0a		            CP      10              ; Line 0869  
+fbd8 38 04		            JR      C,PARER         ; Line 0870 ; Value less than boundary index 'A' 
+fbda fe 10		            CP      16              ; Line 0871 ; Verify upper bound limit index constraint 'F' 
+fbdc 3f			            CCF                     ; Line 0872  
+fbdd d0			            RET     NC              ; Line 0873 ; Return converted integer character element 
+fbde			;snip 
+fbde			; ============================================================================== 
+fbde			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART B4 OF 4 
+fbde			; Core Function: Parameter Extraction, Error Buffers, and Target Parsing 
+fbde			; ============================================================================== 
+fbde			 
+fbde			; ------------------------------------------------------------------------------ 
+fbde			; PARER - ROUTINE TO DEAL WITH ERRORS IN PARAMETERS 
+fbde			; ------------------------------------------------------------------------------ 
+fbde 2a 46 00		PARER:      LD      HL,(BUFPTR)     ; Line 0889 ; PTR TO NEXT CHARACTER 
+fbe1 2b			            DEC     HL              ; Line 0890 ; BACK UP TO ERROR 
+fbe2 36 3f		            LD      (HL),'?'        ; Line 0891 ; MARK ERROR WITH '?' 
+fbe4 23			            INC     HL              ; Line 0892  
+fbe5 36 04		            LD      (HL),EOT        ; Line 0893 ; MARK END OF BUFFER 
+fbe7 11 86 00		            LD      DE,INBUFF+1     ; Line 0894 ; PTR TO INPUT LINE 
+fbea cd a1 fa		            CALL    BUFFOUT         ; Line 0895 ; PRINT ERROR BUFFER 
+fbed ff			            RST     $38             ; Line 0896 ; RESTART MONITOR SUPERVISOR 
+fbee			 
+fbee cd 91 fc		MODPAR:     CALL    PRTASP          ; Line 0907 ; PRINT OLD PARAMETER & VALUE 
+fbf1			                                    ; Line 0908 ; FALL THROUGH TO READ NEW ONE 
+fbf1			 
+fbf1 cd dc f9		READPAR:    CALL    GETBUF          ; Line 0918 ; READ LINE FROM KEYBOARD 
+fbf4			                                    ; Line 0919 ; FALL THROUGH TO PARAM PARSER 
+fbf4			 
+fbf4			; ------------------------------------------------------------------------------ 
+fbf4			; PARAM - SR TO LOAD A 16 BIT PARAMETER INTO HL 
+fbf4			; ------------------------------------------------------------------------------ 
+fbf4 cd a6 fb		PARAM:      CALL    GETUCT          ; Line 0934 ; GET CHARACTER 
+fbf7 21 00 00		            LD      HL,0            ; Line 0935 ; DEFAULT VALUE TO 0000 
+fbfa d8			            RET     C               ; Line 0936 ; TERMINATOR FOUND 
+fbfb fe 27		            CP      39; '\''            ; Line 0937 ; ASCII LITERAL FLAG? 
+fbfd 20 0f		            JR      NZ,NOTLIT       ; Line 0938 ; NO, TRY FOR DECIMAL TYPE 
+fbff cd 9b fb		            CALL    GETCH           ; Line 0939 ; GET LITERAL VALUE 
+fc02 fe 0d		            CP      CR              ; Line 0940 ; CHECK FOR EMPTY FIELD 
+fc04 28 d8		            JR      Z,PARER         ; Line 0941 ; SYNTAX FAULT 
+fc06 6f			            LD      L,A             ; Line 0942 ; CACHE ASCII STRING DATA 
+fc07 cd a6 fb		            CALL    GETUCT          ; Line 0943 ; CHECK LINKING TERMINATOR 
+fc0a 30 d2		            JR      NC,PARER        ; Line 0944 ; FAULT DISCOVERED 
+fc0c 3f			            CCF                     ; Line 0945 ; CLEAR CARRY STATE 
+fc0d c9			            RET                     ; Line 0946  
+fc0e fe 9c		NOTLIT:     CP      DECMRK          ; Line 0947 ; DECIMAL SYMBOL FLAG? 
+fc10 20 11		            JR      NZ,HEX          ; Line 0948 ; NO, SKIP TO HEX INTERPRETER 
+fc12 cd ba fb		DECPAR:     CALL    GETDEC          ; Line 0949 ; EXTRACT VALUE DIGIT 
+fc15 3f			            CCF                     ; Line 0950 ; SYNC CONTROL STATE 
+fc16 d8			            RET     C               ; Line 0951 ; GOT LINE TERMINATOR 
+fc17 e5			            PUSH    HL              ; Line 0952  
+fc18 d1			            POP     DE              ; Line 0953 ; HL COPY IN DE 
+fc19 29			            ADD     HL,HL           ; Line 0954 ; SCALE HL BY 10 (HL=HL*2) 
+fc1a 29			            ADD     HL,HL           ; Line 0955 ; (HL=HL*4) 
+fc1b 19			            ADD     HL,DE           ; Line 0956 ; (HL=HL*5) 
+fc1c 29			            ADD     HL,HL           ; Line 0957 ; (HL=HL*10) 
+fc1d 06 00		            LD      B,0             ; Line 0958  
+fc1f 4f			            LD      C,A             ; Line 0959 ; BC = RETRIEVED VAL DIGIT 
+fc20 09			            ADD     HL,BC           ; Line 0960 ; ACCUMULATE TOTAL 
+fc21 18 ef		            JR      DECPAR          ; Line 0961 ; PARSE SUBSEQUENT DIGITS 
+fc23 cd cc fb		HEX:        CALL    HEXCHK          ; Line 0962 ; VALIDATE CHARACTER AS HEX 
+fc26 29			HEXPAR:     ADD     HL,HL           ; Line 0963 ; SCALE HL BY 16 (HL=HL*2) 
+fc27 29			            ADD     HL,HL           ; Line 0964 ; (HL=HL*4) 
+fc28 29			            ADD     HL,HL           ; Line 0965 ; (HL=HL*8) 
+fc29 29			            ADD     HL,HL           ; Line 0966 ; (HL=HL*16) 
+fc2a 85			            ADD     A,L             ; Line 0967 ; INJECT NEW VALUE SYMBOL 
+fc2b 6f			            LD      L,A             ; Line 0968  
+fc2c cd c8 fb		            CALL    GETHEX          ; Line 0969 ; ATTEMPT NEXT FIELD VALUE 
+fc2f 30 f5		            JR      NC,HEXPAR       ; Line 0970 ; CONTINUITY OBSERVED 
+fc31 3f			            CCF                     ; Line 0971  
+fc32 c9			            RET                     ; Line 0972  
+fc33			;snip 
+fc33			; ============================================================================== 
+fc33			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART C1 OF 4 
+fc33			; Core Function: Dual-Parameter Validation & Supervisor Core Instruction Router 
+fc33			; ============================================================================== 
+fc33			 
+fc33 af			GET2PAR:    XOR     A               ; Line 0984 ; Reset parameter counter to 0 
+fc34 08			            EX      AF,AF'          ; Line 0985 ; Store counter in alternate register 
+fc35 cd f4 fb		            CALL    PARAM           ; Line 0986 ; Parse first input parameter 
+fc38 38 13		            JR      C,ALLREAD       ; Line 0987 ; Branch if empty parameter found 
+fc3a 22 4a 00		            LD      (PAR1),HL       ; Line 0988 ; Store verified value in PAR1 
+fc3d fe 2c		            CP      ','             ; Line 0989 ; Is another argument linked? 
+fc3f 08			            EX      AF,AF'          ; Line 0990 ; Retrieve parameter counter 
+fc40 3c			            INC     A               ; Line 0991 ; Increment parsed value count 
+fc41 08			            EX      AF,AF'          ; Line 0992 ; Save counter status back 
+fc42 20 09		            JR      NZ,ALLREAD      ; Line 0993 ; Line ended, terminal parameter reached 
+fc44 cd f4 fb		            CALL    PARAM           ; Line 0994 ; Parse second input parameter 
+fc47 22 4c 00		            LD      (PAR2),HL       ; Line 0995 ; Store value in PAR2 cache 
+fc4a 08			            EX      AF,AF'          ; Line 0996  
+fc4b 3c			            INC     A               ; Line 0997 ; Increment parsed value count to 2 
+fc4c 08			            EX      AF,AF'          ; Line 0998  
+fc4d 08			ALLREAD:    EX      AF,AF'          ; Line 0999 ; Pull parameter count to A 
+fc4e 32 4e 00		            LD      (NPARS),A       ; Line 1000 ; Store quantified execution count 
+fc51 08			            EX      AF,AF'          ; Line 1001 ; Restore ending line character 
+fc52 c9			            RET                     ; Line 1002  
+fc53			 
+fc53 cd 33 fc		PCHECK:     CALL    GET2PAR         ; Line 1016 ; Pull instruction parameter variables 
+fc56 f5			            PUSH    AF              ; Line 1017 ; Cache line character indicator 
+fc57 3a 4e 00		            LD      A,(NPARS)       ; Line 1018 ; Verify parsed arguments count 
+fc5a a7			            AND     A               ; Line 1019  
+fc5b 28 81		            JR      Z,PARER         ; Line 1020 ; Empty target fields, break with error 
+fc5d f1			            POP     AF              ; Line 1021  
+fc5e c9			            RET                     ; Line 1022  
+fc5f			 
+fc5f f5			PRTA:       PUSH    AF              ; Line 1029 ; Save working byte parameter 
+fc60 0f			            RRCA                    ; Line 1030 ; Extract upper 4-bit nibble value 
+fc61 0f			            RRCA                    ; Line 1031  
+fc62 0f			            RRCA                    ; Line 1032  
+fc63 0f			            RRCA                    ; Line 1033  
+fc64 cd 68 fc		            CALL    HXCVRT          ; Line 1034 ; Convert and display upper hex digit 
+fc67 f1			            POP     AF              ; Line 1035 ; Retrieve lower 4-bit nibble value 
+fc68 e6 0f		HXCVRT:     AND     $0F             ; Line 1036 ; Isolate hex value parameters 
+fc6a c6 30		            ADD     A,'0'           ; Line 1037 ; Convert to visual ASCII character base 
+fc6c fe 3a		            CP      '9'+1           ; Line 1038 ; Evaluate character index threshold 
+fc6e 38 02		            JR      C,HXPRN         ; Line 1039 ; 0-9 numerical value confirmed 
+fc70 c6 07		            ADD     A,7             ; Line 1040 ; Adjust spacing offset for hex A-F range 
+fc72 c3 d4 f8		HXPRN:      JP      CONOUT          ; Line 1041 ; Flush digit out to terminal screen 
+fc75			 
+fc75 cd 53 fc		HEXC:       CALL    PCHECK          ; Line 1053 ; Extract entry validation fields 
+fc78 2a 4a 00		            LD      HL,(PAR1)       ; Line 1054 ; Retrieve base data value 
+fc7b 3a 4e 00		            LD      A,(NPARS)       ; Line 1055 ; Query parsed field volume count 
+fc7e 3d			            DEC     A               ; Line 1056  
+fc7f 28 0b		            JR      Z,PRTHLSP       ; Line 1057 ; Print 16-bit address parameters 
+fc81 23			            INC     HL              ; Line 1058 ; Target relative instruction jump logic offset 
+fc82 23			            INC     HL              ; Line 1059  
+fc83 eb			            EX      DE,HL           ; Line 1060  
+fc84 2a 4c 00		            LD      HL,(PAR2)       ; Line 1061 ; Retrieve target jump location field 
+fc87 ed 52		            SBC     HL,DE           ; Line 1062 ; Calculate offset spacing bounds parameters 
+fc89			                                    ; Line 1063 ; Fall down directly to output functions 
+fc89			 
+fc89 cd b0 fa		PNLHLSP:    CALL    CRLF            ; Line 1073 ; Output clear carriage return line break 
+fc8c 7c			PRTHLSP:    LD      A,H             ; Line 1074 ; Load upper address tracking byte 
+fc8d cd 5f fc		            CALL    PRTA            ; Line 1075 ; Visual hex generation dispatch 
+fc90 7d			            LD      A,L             ; Line 1076 ; Load lower address tracking byte 
+fc91			                                    ; Line 1077 ; Fall down directly to spacing interface 
+fc91			 
+fc91 cd 5f fc		PRTASP:     CALL    PRTA            ; Line 1084 ; Visual character hex generation out 
+fc94 3e 20		SPACE:      LD      A,' '           ; Line 1092 ; Load standard terminal spacing character 
+fc96 c3 d4 f8		            JP      CONOUT          ; Line 1093 ; Clear to stream pipeline module 
+fc99			 
+fc99			; ------------------------------------------------------------------------------ 
+fc99			; MONLP - SUPERVISOR SYSTEM MONITOR COMMAND INTERPRETATION VECTOR DISPATCH LOOP 
+fc99			; ------------------------------------------------------------------------------ 
+fc99 31 00 01		MONLP:      LD      SP,MONSTK       ; Line 1103 ; Force reset supervisor stack location 
+fc9c cd b0 fa		            CALL    CRLF            ; Line 1104 ; Inject line interface spacer formatting 
+fc9f 3e 2a		            LD      A,PROMPT        ; Line 1105 ; Load system user input prompt marker 
+fca1 cd d4 f8		            CALL    CONOUT          ; Line 1106 ; Output tracking prompt string character 
+fca4 cd dc f9		            CALL    GETBUF          ; Line 1107 ; Hook active console command input stream 
+fca7 cd b0 fa		            CALL    CRLF            ; Line 1108  
+fcaa cd a6 fb		            CALL    GETUCT          ; Line 1109 ; Retrieve character instruction routing token 
+fcad 21 99 fc		            LD      HL,MONLP        ; Line 1110 ; Establish structural return reference 
+fcb0 e5			            PUSH    HL              ; Line 1111 ; Cache supervisor path tracking vector frame 
+fcb1 fe 2d		            CP      '-'             ; Line 1112 ; Query clear breakpoint command indicator 
+fcb3 28 40		            JR      Z,MINUSB        ; Line 1113 ; Dispatched breakpoint manipulation parser 
+fcb5 d6 41		            SUB     'A'             ; Line 1114 ; Generate jump dictionary entry value index 
+fcb7 ca a8 fd		            JP      Z,ASCII         ; Line 1115 ; Command Action Vector target: [A]ascii 
+fcba 3d			            DEC     A               ; Line 1116  
+fcbb ca 5a fd		            JP      Z,SETBPT        ; Line 1117 ; Command Action Vector target: [B]reakpoint 
+fcbe 3d			            DEC     A               ; Line 1118  
+fcbf 3d			            DEC     A               ; Line 1119  
+fcc0 ca 05 ff		            JP      Z,DUMP          ; Line 1120 ; Command Action Vector target: [D]ump hex 
+fcc3 3d			            DEC     A               ; Line 1121  
+fcc4 ca fd f7		            JP      Z,EDIT          ; Line 1122 ; Command Action Vector target: [E]dit firmware 
+fcc7 3d			            DEC     A               ; Line 1123  
+fcc8 ca 8d fd		            JP      Z,FILL          ; Line 1124 ; Command Action Vector target: [F]ill memory 
+fccb 3d			            DEC     A               ; Line 1125  
+fccc ca c5 fd		            JP      Z,GO            ; Line 1126 ; Command Action Vector target: [G]o run execute 
+fccf 3d			            DEC     A               ; Line 1127  
+fcd0 28 a3		            JR      Z,HEXC          ; Line 1128 ; Command Action Vector target: [H]ex conversion 
+fcd2 d6 05		            SUB     5               ; Line 1129  
+fcd4 ca 64 ff		            JP      Z,MOVE          ; Line 1130 ; Command Action Vector target: [M]ove array block 
+fcd7 d6 03		            SUB     3               ; Line 1131  
+fcd9 ca 00 80		            JP      Z,PASCAL        ; Line 1132 ; Command Action Vector target: [P]ascal overlay 
+fcdc 3d			            DEC     A               ; Line 1133  
+fcdd 3d			            DEC     A               ; Line 1134  
+fcde ca 2a fb		            JP      Z,READ          ; Line 1135 ; Command Action Vector target: [R]ead stream file 
+fce1 3d			            DEC     A               ; Line 1136  
+fce2 ca e5 fe		            JP      Z,SET           ; Line 1137 ; Command Action Vector target: [S]et modify byte 
+fce5 3d			            DEC     A               ; Line 1138  
+fce6 ca 00 f0		            JP      Z,TRACE         ; Line 1139 ; Command Action Vector target: [T]race debugger 
+fce9 d6 03		            SUB     3               ; Line 1140  
+fceb ca bd fa		            JP      Z,WRITE         ; Line 1141 ; Command Action Vector target: [W]rite storage file 
+fcee 3d			            DEC     A               ; Line 1142  
+fcef ca 7c fe		            JP      Z,XAMIN         ; Line 1143 ; Command Action Vector target: [X]examine register 
+fcf2			 
+fcf2 c3 de fb		COMER:      JP      PARER           ; Line 1145 ; Exception caught, command invalid error 
+fcf5 cd a6 fb		MINUSB:     CALL    GETUCT          ; Line 1147 ; Parse following flag qualifier token 
+fcf8 fe 42		            CP      'B'             ; Line 1148 ; Is breakpoint operational argument validated? 
+fcfa 20 f6		            JR      NZ,COMER        ; Line 1149 ; Bad command layout option, throw exception 
+fcfc			;snip 
+fcfc			; ============================================================================== 
+fcfc			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART C2 OF 4 
+fcfc			; Core Function: Breakpoint Table Shifting, Installation, and Clearance Loops 
+fcfc			; ============================================================================== 
+fcfc			 
+fcfc cd f4 fb		CLRBPT:     CALL    PARAM           ; Line 1168 ; Parse address argument if present 
+fcff 06 08		            LD      B,NBP           ; Line 1169 ; Load total breakpoint loop limit count 
+fd01 dd 21 4f 00	            LD      IX,BPTAB        ; Line 1170 ; Point to breakpoint storage matrix area 
+fd05 38 44		            JR      C,CLRALL        ; Line 1171 ; Empty argument, proceed to wipe table 
+fd07 dd 5e 00		CLRSRC:     LD      E,(IX+0)        ; Line 1172 ; Extract low address tracker byte from table 
+fd0a dd 56 01		            LD      D,(IX+1)        ; Line 1173 ; Extract high address tracker byte from table 
+fd0d cd 24 fb		            CALL    DPCMP           ; Line 1174 ; Match address field query parameters 
+fd10 28 20		            JR      Z,CLEAR         ; Line 1175 ; Match discovered, remove breakpoint entry 
+fd12 dd 23		            INC     IX              ; Line 1176 ; Advance table workspace focus pointer 
+fd14 dd 23		            INC     IX              ; Line 1177  
+fd16 dd 23		            INC     IX              ; Line 1178  
+fd18 10 ed		            DJNZ    CLRSRC          ; Line 1179 ; Loop through active elements inside table 
+fd1a 06 08		LSTBPT:     LD      B,NBP           ; Line 1181 ; Query and report active target vectors 
+fd1c 11 4f 00		            LD      DE,BPTAB        ; Line 1182  
+fd1f 1a			LSTB:       LD      A,(DE)          ; Line 1183 ; Extract tracking address low byte register 
+fd20 6f			            LD      L,A             ; Line 1184  
+fd21 13			            INC     DE              ; Line 1185  
+fd22 1a			            LD      A,(DE)          ; Line 1186 ; Extract tracking address high byte register 
+fd23 67			            LD      H,A             ; Line 1187  
+fd24 13			            INC     DE              ; Line 1188  
+fd25 13			            INC     DE              ; Line 1189  
+fd26 fe f8		            CP      MONPAG          ; Line 1190 ; Is address field marked as inactive ROM page? 
+fd28 28 05		            JR      Z,LASTB         ; Line 1191 ; Yes, end of directory listings reached 
+fd2a cd 8c fc		            CALL    PRTHLSP         ; Line 1192 ; Print active address reference out to terminal 
+fd2d 10 f0		            DJNZ    LSTB            ; Line 1193 ; Loop until table list outputs completely 
+fd2f c3 b0 fa		LASTB:      JP      CRLF            ; Line 1194  
+fd32			 
+fd32 05			CLEAR:      DEC     B               ; Line 1196 ; Calculate size adjustments shift metrics 
+fd33 78			            LD      A,B             ; Line 1197  
+fd34 87			            ADD     A,A             ; Line 1198 ; Scale row entry sizes offset elements (Row * 2) 
+fd35 80			            ADD     A,B             ; Line 1199 ; (Row * 3 size matrix) 
+fd36 4f			            LD      C,A             ; Line 1200 ; Set loop index constraint size count in BC 
+fd37 06 00		            LD      B,0             ; Line 1201  
+fd39 dd e5		            PUSH    IX              ; Line 1202  
+fd3b d1			            POP     DE              ; Line 1203 ; DE = Starting address location of empty entry 
+fd3c 28 07		            JR      Z,NOMOVE        ; Line 1204 ; Array row bounds matched, skip moving layout 
+fd3e 62			            LD      H,D             ; Line 1205 ; Establish memory block copy address vectors 
+fd3f 6b			            LD      L,E             ; Line 1206  
+fd40 23			            INC     HL              ; Line 1207  
+fd41 23			            INC     HL              ; Line 1208  
+fd42 23			            INC     HL              ; Line 1209  
+fd43 ed b0		            LDIR                    ; Line 1210 ; Compress array table space to close gap 
+fd45 3e f8		NOMOVE:     LD      A,MONPAG        ; Line 1211 ; Load standard monitor page identifier flag 
+fd47 13			            INC     DE              ; Line 1212  
+fd48 12			            LD      (DE),A          ; Line 1213 ; Mark newly exposed row index slots empty 
+fd49 18 cf		            JR      LSTBPT          ; Line 1214 ; Output revised active breakpoint map grid 
+fd4b			 
+fd4b dd 23		CLRALL:     INC     IX              ; Line 1216 ; Advance table address pointer location focus 
+fd4d 11 03 00		            LD      DE,3            ; Line 1217 ; Load structural matrix entry stride dimension 
+fd50 3e f8		            LD      A,MONPAG        ; Line 1218 ; Load baseline inactive identifier marker code 
+fd52 dd 77 00		CLRBPN:     LD      (IX+0),A        ; Line 1219 ; Inject empty code value into high index byte 
+fd55 dd 19		            ADD     IX,DE           ; Line 1220 ; Step matrix focus register to next row path 
+fd57 10 f9		            DJNZ    CLRBPN          ; Line 1221  
+fd59 c9			            RET                     ; Line 1222  
+fd5a			 
+fd5a cd f4 fb		SETBPT:     CALL    PARAM           ; Line 1233 ; Extract target entry location parameters 
+fd5d 38 bb		            JR      C,LSTBPT        ; Line 1234 ; Argument clear, proceed directly to display lists 
+fd5f dd 21 4f 00	            LD      IX,BPTAB        ; Line 1235 ; Track master target breakpoint array memory base 
+fd63 06 08		            LD      B,NBP           ; Line 1236 ; Load maximum internal storage allocation bounds 
+fd65 dd 5e 00		SETB:       LD      E,(IX+0)        ; Line 1237 ; Read active row vector tracking indices low byte 
+fd68 dd 56 01		            LD      D,(IX+1)        ; Line 1238 ; Read active row vector tracking indices high byte 
+fd6b 7a			            LD      A,D             ; Line 1239  
+fd6c fe f8		            CP      MONPAG          ; Line 1240 ; Is slot currently empty/inactive configuration? 
+fd6e 28 15		            JR      Z,SETIT         ; Line 1241 ; Empty slot discovered, inject user parameters 
+fd70 cd 24 fb		            CALL    DPCMP           ; Line 1242 ; Check if address vector duplicate is present 
+fd73 28 a5		            JR      Z,LSTBPT        ; Line 1243 ; Already configured, skip addition sequence 
+fd75 dd 23		            INC     IX              ; Line 1244 ; Shift tracking focus pointer to following row 
+fd77 dd 23		            INC     IX              ; Line 1245  
+fd79 dd 23		            INC     IX              ; Line 1246  
+fd7b 10 e8		            DJNZ    SETB            ; Line 1247 ; Loop until entire storage block evaluates fully 
+fd7d 11 c5 ff		            LD      DE,ALLSET       ; Line 1248  
+fd80 cd ad fa		            CALL    BUFFCR          ; Line 1249 ; Array table footprint saturated message block 
+fd83 18 95		            JR      LSTBPT          ; Line 1250  
+fd85 dd 75 00		SETIT:      LD      (IX+0),L        ; Line 1252 ; Inject destination address parameters into table 
+fd88 dd 74 01		            LD      (IX+1),H        ; Line 1253  
+fd8b 18 8d		            JR      LSTBPT          ; Line 1254 ; Display refreshed layout overview trace 
+fd8d			;snip 
+fd8d			; ============================================================================== 
+fd8d			; Z80 ASSEMBLY SOURCE CODE — MISSING BLOCK PART C3 OF 4 
+fd8d			; Core Function: Memory Array Fill, ASCII Injection, and Runtime Execution Loops 
+fd8d			; ============================================================================== 
+fd8d			 
+fd8d			; ------------------------------------------------------------------------------ 
+fd8d			; FILL - FUNCTION TO DATA-FILL A TARGET REGION OF SYSTEM RAM 
+fd8d			; ------------------------------------------------------------------------------ 
+fd8d cd 53 fc		FILL:       CALL    PCHECK          ; Line 1262 ; Extract boundary setup metrics 
+fd90 fe 2c		            CP      ','             ; Line 1263 ; Verify syntax parsing comma divider 
+fd92 c2 de fb		FERR:       JP      NZ,PARER        ; Line 1264 ; Invalid parameters array syntax layout 
+fd95 cd f4 fb		            CALL    PARAM           ; Line 1265 ; Extract fill data token argument 
+fd98 7d			            LD      A,L             ; Line 1266 ; Assign character byte value parameter 
+fd99 2a 4a 00		            LD      HL,(PAR1)       ; Line 1267 ; Load start coordinate address value 
+fd9c eb			            EX      DE,HL           ; Line 1268 ; Move start vector address to DE 
+fd9d 2a 4c 00		            LD      HL,(PAR2)       ; Line 1269 ; Extract destination end marker address 
+fda0 12			FILLM:      LD      (DE),A          ; Line 1270 ; Inject data value directly into RAM target 
+fda1 cd 24 fb		            CALL    DPCMP           ; Line 1271 ; Evaluate pointer loop end state targets 
+fda4 13			            INC     DE              ; Line 1272 ; Advance writing pointer address 
+fda5 20 f9		            JR      NZ,FILLM        ; Line 1273 ; Repeat execution pass loop completely 
+fda7 c9			            RET                     ; Line 1274  
+fda8			 
+fda8			; ------------------------------------------------------------------------------ 
+fda8			; ASCII - FUNCTION TO INJECT STRINGS DIRECTLY INTO TARGET ADDRESS 
+fda8			; ------------------------------------------------------------------------------ 
+fda8 cd f4 fb		ASCII:      CALL    PARAM           ; Line 1286 ; Extract destination address vector 
+fdab da de fb		            JP      C,PARER         ; Line 1287 ; Target address absent, trigger error path 
+fdae e5			            PUSH    HL              ; Line 1288 ; Cache writing base address point 
+fdaf cd dc f9		            CALL    GETBUF          ; Line 1289 ; Collect target text line string from kbd 
+fdb2 e1			            POP     HL              ; Line 1290 ; Restore base memory write coordinate 
+fdb3 cd 9b fb		ASCL:       CALL    GETCH           ; Line 1291 ; Extract text stream byte token element 
+fdb6 77			            LD      (HL),A          ; Line 1292 ; Commit character byte string directly to RAM 
+fdb7 23			            INC     HL              ; Line 1293 ; Advance tracking buffer target index 
+fdb8 fe 0d		            CP      CR              ; Line 1294 ; Is string line completion reached? 
+fdba 20 f7		            JR      NZ,ASCL         ; Line 1295 ; Continue string generation loop pass 
+fdbc 2b			            DEC     HL              ; Line 1296 ; Adjust boundary focus back over return byte 
+fdbd 36 04		            LD      (HL),EOT        ; Line 1297 ; Inject End of Transmission sentinel tracking 
+fdbf cd b0 fa		            CALL    CRLF            ; Line 1298  
+fdc2 c3 8c fc		            JP      PRTHLSP         ; Line 1299 ; Print final writing index tracking vector 
+fdc5			 
+fdc5			; ------------------------------------------------------------------------------ 
+fdc5			; GO - FUNCTION TO TRANSFER ABSOLUTE SYSTEM CONTROLS TO TARGET APPLICATION 
+fdc5			; ------------------------------------------------------------------------------ 
+fdc5 cd f4 fb		GO:         CALL    PARAM           ; Line 1312 ; Query code execution entry address 
+fdc8 38 03		            JR      C,CONTINUE      ; Line 1313 ; Missing input parameter, continue old task 
+fdca 22 77 00		            LD      (PCSAV),HL      ; Line 1314 ; Load target entry path vector code to PC 
+fdcd 21 06 fe		CONTINUE:   LD      HL,BREAK        ; Line 1316 ; Intercept Core Restart tracking loop trap 
+fdd0 22 39 00		            LD      (RST7+1),HL     ; Line 1317 ; Route vector directly into BREAK interface 
+fdd3 21 4f 00		            LD      HL,BPTAB        ; Line 1318 ; Master tracking base of Breakpoint Array 
+fdd6 06 08		            LD      B,NBP           ; Line 1319 ; Initialize loop tracking limit index span 
+fdd8 5e			INSTALL:    LD      E,(HL)          ; Line 1320 ; Extract active trap point address low byte 
+fdd9 23			            INC     HL              ; Line 1321  
+fdda 56			            LD      D,(HL)          ; Line 1322 ; Extract active trap point address high byte 
+fddb 23			            INC     HL              ; Line 1323  
+fddc e5			            PUSH    HL              ; Line 1324 ; Cache array scanning layout index pointer 
+fddd 2a 77 00		            LD      HL,(PCSAV)      ; Line 1325 ; Extract application program start counter 
+fde0 cd 24 fb		            CALL    DPCMP           ; Line 1326 ; Entry coordinate matches breakpoint target? 
+fde3 e1			            POP     HL              ; Line 1327 ; Restore pointer context element state 
+fde4 1a			            LD      A,(DE)          ; Line 1328 ; Fetch user app native operation opcode 
+fde5 77			            LD      (HL),A          ; Line 1329 ; Store operation byte into cache row block 
+fde6 28 03		            JR      Z,MISS          ; Line 1330 ; Entry vector alignment conflict, skip mask 
+fde8 3e ff		            LD      A,BRK           ; Line 1331 ; Load software trap restart instruction code 
+fdea 12			            LD      (DE),A          ; Line 1332 ; Overwrite program code line with active trap 
+fdeb 23			MISS:       INC     HL              ; Line 1333  
+fdec 10 ea		            DJNZ    INSTALL         ; Line 1334 ; Continue code loop initialization pass 
+fdee 31 67 00		            LD      SP,ISAV         ; Line 1335 ; Swap execution stack focus over register cache 
+fdf1			;snip 
+fdf1 f1			            POP     AF              ; Line 1336  
+fdf2 ed 47		            LD      I,A             ; Line 1337 ; Restore Register I 
+fdf4 f1			            POP     AF              ; Line 1338 ; Restore Registers AF 
+fdf5 c1			            POP     BC              ; Line 1339 ; Restore Registers BC 
+fdf6 d1			            POP     DE              ; Line 1340 ; Restore Registers DE 
+fdf7 e1			            POP     HL              ; Line 1341 ; Restore Registers HL 
+fdf8 dd e1		            POP     IX              ; Line 1342 ; Restore Index Register IX 
+fdfa fd e1		            POP     IY              ; Line 1343 ; Restore Index Register IY 
+fdfc e1			            POP     HL              ; Line 1344 ; Pull saved Stack Pointer 
+fdfd f9			            LD      SP,HL           ; Line 1345 ; Set active Stack Pointer SP 
+fdfe 2a 77 00		            LD      HL,(PCSAV)      ; Line 1346 ; Load user app start vector 
+fe01 e5			            PUSH    HL              ; Line 1347 ; Force target onto stack layer 
+fe02 2a 6f 00		            LD      HL,(HLSAV)      ; Line 1348 ; Restore target value to HL 
+fe05 c9			            RET                     ; Line 1349 ; Control transfer to user app 
+fe06			 
+fe06 22 6f 00		BREAK:      LD      (HLSAV),HL      ; Line 1357 ; Capture current HL state 
+fe09 22 79 00		            LD      (DISPAD),HL     ; Line 1358 ; Assign address as hex dump base 
+fe0c e1			            POP     HL              ; Line 1359 ; Pull program counter from stack 
+fe0d 2b			            DEC     HL              ; Line 1360 ; Offset back over executed trap 
+fe0e 22 77 00		            LD      (PCSAV),HL      ; Line 1361 ; Capture execution address 
+fe11 ed 73 75 00	            LD      (SPSAV),SP      ; Line 1362 ; Capture application stack bounds 
+fe15 31 75 00		            LD      SP,SPSAV        ; Line 1363 ; Relocate stack focus to workspace 
+fe18 fd e5		            PUSH    IY              ; Line 1364 ; Snapshot registers/flags matrices 
+fe1a dd e5		            PUSH    IX              ; Line 1365  
+fe1c 3b			            DEC     SP              ; Line 1366 ; Skip structural slot for HLSAV 
+fe1d 3b			            DEC     SP              ; Line 1367  
+fe1e d5			            PUSH    DE              ; Line 1368  
+fe1f c5			            PUSH    BC              ; Line 1369  
+fe20 f5			            PUSH    AF              ; Line 1370  
+fe21 ed 57		            LD      A,I             ; Line 1371 ; Capture interrupt register flag 
+fe23 f5			            PUSH    AF              ; Line 1372  
+fe24 31 00 01		            LD      SP,MONSTK       ; Line 1373 ; Re-establish supervisor stack 
+fe27 21 4f 00		            LD      HL,BPTAB        ; Line 1374 ; Target base of Breakpoint Table 
+fe2a 06 08		            LD      B,NBP           ; Line 1375 ; Initialize table cleaning count 
+fe2c 5e			RESETBP:    LD      E,(HL)          ; Line 1376 ; Pull trap vector low byte 
+fe2d 23			            INC     HL              ; Line 1377  
+fe2e 56			            LD      D,(HL)          ; Line 1378 ; Pull trap vector high byte 
+fe2f 23			            INC     HL              ; Line 1379  
+fe30 7e			            LD      A,(HL)          ; Line 1380 ; Extract cached original opcode 
+fe31 23			            INC     HL              ; Line 1381  
+fe32 12			            LD      (DE),A          ; Line 1382 ; Patch app line back to original 
+fe33 10 f7		            DJNZ    RESETBP         ; Line 1383 ; Loop until breakpoint clears 
+fe35 21 99 fc		            LD      HL,MONLP        ; Line 1384 ; Load primary monitor execution path 
+fe38 22 39 00		            LD      (RST7+1),HL     ; Line 1385 ; Standardize vectors back to monitor 
+fe3b			;snip 
+fe3b cd 3f fe		STATUS:     CALL    RDIS            ; Line 1390 ; Output current register snapshots 
+fe3e ff			            RST     $38             ; Line 1391 ; Loop control back into command line interpreter 
+fe3f			 
+fe3f 11 cf ff		RDIS:       LD      DE,REGHDR       ; Line 1393 ; Load register summary interface layout 
+fe42 cd ad fa		            CALL    BUFFCR          ; Line 1394  
+fe45 cd 64 fe		            CALL    FLAGDIS         ; Line 1395 ; Map out text summary parameters for flags 
+fe48 11 68 00		            LD      DE,ISAV+1       ; Line 1396 ; Target stored register snapshot: I 
+fe4b 1a			            LD      A,(DE)          ; Line 1397  
+fe4c 13			            INC     DE              ; Line 1398  
+fe4d 13			            INC     DE              ; Line 1399  
+fe4e cd 91 fc		            CALL    PRTASP          ; Line 1400 ; Output hex register details followed by spacing 
+fe51 1a			            LD      A,(DE)          ; Line 1401 ; Target stored register snapshot: A 
+fe52 13			            INC     DE              ; Line 1402  
+fe53 cd 91 fc		            CALL    PRTASP          ; Line 1403 ; Output hex register details followed by spacing 
+fe56 06 07		            LD      B,7             ; Line 1404 ; Initialize 16-bit register looping cycle index 
+fe58 1a			PRTDBL:     LD      A,(DE)          ; Line 1405 ; Extract structural byte data from register array 
+fe59 6f			            LD      L,A             ; Line 1406  
+fe5a 13			            INC     DE              ; Line 1407  
+fe5b 1a			            LD      A,(DE)          ; Line 1408  
+fe5c 67			            LD      H,A             ; Line 1409  
+fe5d 13			            INC     DE              ; Line 1410  
+fe5e cd 8c fc		            CALL    PRTHLSP         ; Line 1411 ; Output 16-bit word block data index 
+fe61 10 f5		            DJNZ    PRTDBL          ; Line 1412 ; Loop until all 7 master snapshot registers clear 
+fe63 c9			            RET                     ; Line 1413  
+fe64			 
+fe64 21 91 ff		FLAGDIS:    LD      HL,FLGTAB       ; Line 1415 ; Point to system bitmask testing parameter array 
+fe67 06 06		            LD      B,6             ; Line 1416 ; Set iteration limit spanning the 6 Z80 flags 
+fe69 3a 69 00		PRTFLG:     LD      A,(AFSAV)       ; Line 1417 ; Pull cached application flags state register 
+fe6c a6			            AND     (HL)            ; Line 1418 ; Isolate current query focus bit layer 
+fe6d 23			            INC     HL              ; Line 1419  
+fe6e 7e			            LD      A,(HL)          ; Line 1420 ; Extract visual ASCII symbol assigned to target flag 
+fe6f 20 02		            JR      NZ,FLAGSET      ; Line 1421 ; Flag logic bit active, output symbol directly 
+fe71 3e 2d		            LD      A,'-'           ; Line 1422 ; Bit clear, override output character with spacer dash 
+fe73 cd d4 f8		FLAGSET:    CALL    CONOUT          ; Line 1423 ; Write character out to console display line 
+fe76 23			            INC     HL              ; Line 1424  
+fe77 10 f0		            DJNZ    PRTFLG          ; Line 1425 ; Loop until flags tracking pass satisfies entirely 
+fe79 c3 94 fc		            JP      SPACE           ; Line 1426  
+fe7c			;snip 
+fe7c			; ------------------------------------------------------------------------------ 
+fe7c			; XAMIN - FUNCTION TO QUERY AND INTERACTIVELY UPDATE REGISTER SNAPSHOTS 
+fe7c			; ------------------------------------------------------------------------------ 
+fe7c cd a6 fb		XAMIN:      CALL    GETUCT          ; Line 1442 ; Query parameter key token 
+fe7f 38 be		            JR      C,RDIS          ; Line 1443 ; If missing token, output all 
+fe81 fe 46		            CP      'F'             ; Line 1444 ; Target matches [F]lags? 
+fe83 28 3b		            JR      Z,FLGMFY        ; Line 1445  
+fe85 fe 41		            CP      'A'             ; Line 1446 ; Target matches [A]ccumulator? 
+fe87 28 25		            JR      Z,ACCMFY        ; Line 1447  
+fe89 fe 49		            CP      'I'             ; Line 1448 ; Target matches [I]nterrupt? 
+fe8b 28 26		            JR      Z,INTMFY        ; Line 1449  
+fe8d 21 9d ff		            LD      HL,REGTAB       ; Line 1450 ; Set array list bounds focus 
+fe90 01 08 00		            LD      BC,8            ; Line 1451  
+fe93 ed b1		            CPIR                    ; Line 1452 ; Scan text index for character match 
+fe95 20 41		            JR      NZ,FPARER       ; Line 1453 ; Unmatched, parameter error 
+fe97 21 69 00		            LD      HL,AFSAV        ; Line 1454 ; Base of register storage block 
+fe9a 09			            ADD     HL,BC           ; Line 1455 ; Add offset index (Words) 
+fe9b 09			            ADD     HL,BC           ; Line 1456  
+fe9c e5			            PUSH    HL              ; Line 1457  
+fe9d 7e			            LD      A,(HL)          ; Line 1458 ; Pull existing data byte component 
+fe9e 23			            INC     HL              ; Line 1459  
+fe9f 66			            LD      H,(HL)          ; Line 1460  
+fea0 6f			            LD      L,A             ; Line 1461  
+fea1 cd 8c fc		            CALL    PRTHLSP         ; Line 1462 ; Print 16-bit state to terminal 
+fea4 cd f1 fb		            CALL    READPAR         ; Line 1463 ; Parse number modification data 
+fea7 eb			            EX      DE,HL           ; Line 1464  
+fea8 e1			            POP     HL              ; Line 1465 ; Restore context data pointer 
+fea9 d8			            RET     C               ; Line 1466 ; No modification logged, exit block 
+feaa 73			            LD      (HL),E          ; Line 1467 ; Write revised lower byte to cache 
+feab 23			            INC     HL              ; Line 1468  
+feac 72			            LD      (HL),D          ; Line 1469 ; Write revised upper byte to cache 
+fead c9			            RET                     ; Line 1470  
+feae			 
+feae 11 6a 00		ACCMFY:     LD      DE,AFSAV+1      ; Line 1472 ; Target register snapshot: A 
+feb1 18 03		            JR      MFY8            ; Line 1473  
+feb3 11 68 00		INTMFY:     LD      DE,ISAV+1       ; Line 1475 ; Target register snapshot: I 
+feb6 1a			MFY8:       LD      A,(DE)          ; Line 1476  
+feb7 d5			            PUSH    DE              ; Line 1477 ; Cache system memory entry tracker 
+feb8 cd ee fb		            CALL    MODPAR          ; Line 1478 ; Print current metric and evaluate update 
+febb d1			            POP     DE              ; Line 1479  
+febc d8			            RET     C               ; Line 1480 ; Value unchanged, return from handler 
+febd 7d			            LD      A,L             ; Line 1481 ; Isolate lower byte data 
+febe 12			            LD      (DE),A          ; Line 1482 ; Save updated byte to snapshot register 
+febf c9			            RET                     ; Line 1483  
+fec0			 
+fec0 cd 64 fe		FLGMFY:     CALL    FLAGDIS         ; Line 1485 ; Display flag bit parameters 
+fec3 cd dc f9		            CALL    GETBUF          ; Line 1486 ; Pull updated descriptors array data 
+fec6 0e 00		            LD      C,0             ; Line 1487 ; Initialize empty bitmask accumulator 
+fec8 cd a6 fb		FLGL:       CALL    GETUCT          ; Line 1488 ; Extract target identifier letter token 
+fecb d8			            RET     C               ; Line 1489 ; Line complete, exit block 
+fecc 21 92 ff		            LD      HL,FLGTAB+1     ; Line 1490 ; Set scanning database pointer focus 
+fecf 06 06		            LD      B,6             ; Line 1491  
+fed1 be			FLG2:       CP      (HL)            ; Line 1492 ; Input character matches descriptor? 
+fed2 28 07		            JR      Z,FSET          ; Line 1493 ; Match found, activate bit mask 
+fed4 23			            INC     HL              ; Line 1494  
+fed5 23			            INC     HL              ; Line 1495  
+fed6 10 f9		            DJNZ    FLG2            ; Line 1496 ; Continue scanning options list 
+fed8 c3 de fb		FPARER:     JP      PARER           ; Line 1497 ; Invalid token identifier exception 
+fedb			 
+fedb 79			FSET:       LD      A,C             ; Line 1499 ; Pull parameter bit mask cache 
+fedc 2b			            DEC     HL              ; Line 1500 ; Realign pointer over flag mask byte 
+fedd b6			            OR      (HL)            ; Line 1501 ; Inject parameter mask layer into data byte 
+fede 23			            INC     HL              ; Line 1502  
+fedf 32 69 00		            LD      (AFSAV),A       ; Line 1503 ; Commit updated flags byte to storage 
+fee2 4f			            LD      C,A             ; Line 1504  
+fee3 18 e3		            JR      FLGL            ; Line 1505 ; Query stream for additional tokens 
+fee5			;snip 
+fee5			; ------------------------------------------------------------------------------ 
+fee5			; SET - FUNCTION TO INTERACTIVELY EXAMINE AND INJECT BYTES DIRECTLY INTO RAM 
+fee5			; ------------------------------------------------------------------------------ 
+fee5 cd 53 fc		SET:        CALL    PCHECK          ; Line 1518 ; Parse and verify target address 
+fee8 2a 4a 00		            LD      HL,(PAR1)       ; Line 1519  
+feeb eb			            EX      DE,HL           ; Line 1520 ; Relocate tracking address pointer to DE 
+feec 62			SETLP:      LD      H,D             ; Line 1521 ; Align address into HL for screen print 
+feed 6b			            LD      L,E             ; Line 1522  
+feee cd 89 fc		            CALL    PNLHLSP         ; Line 1523 ; Direct print: CR, LF, Address, space 
+fef1 1a			            LD      A,(DE)          ; Line 1524 ; Read existing live data byte from RAM 
+fef2 d5			            PUSH    DE              ; Line 1525  
+fef3 cd ee fb		            CALL    MODPAR          ; Line 1526 ; Output current state, await new data entry 
+fef6 d1			            POP     DE              ; Line 1527  
+fef7 38 03		            JR      C,NOUPDAT       ; Line 1528 ; No data entry, retain baseline value 
+fef9 eb			            EX      DE,HL           ; Line 1529 ; Swap writing pointers and data blocks 
+fefa 73			            LD      (HL),E          ; Line 1530 ; Write user modification into RAM 
+fefb eb			            EX      DE,HL           ; Line 1531  
+fefc fe 5e		NOUPDAT:    CP      '^'             ; Line 1532 ; Query command backstep indicator 
+fefe 1b			            DEC     DE              ; Line 1533 ; Calculate address backward 
+feff 28 eb		            JR      Z,SETLP         ; Line 1534 ; Navigation token valid, cycle loop back 
+ff01 13			            INC     DE              ; Line 1535 ; Re-adjust target pointer alignments 
+ff02 13			            INC     DE              ; Line 1536 ; Advance writing index coordinates forward 
+ff03 18 e7		            JR      SETLP           ; Line 1537 ; Repeat verification step pass 
+ff05			;snip 
+ff05			; ------------------------------------------------------------------------------ 
+ff05			; DUMP - FUNCTION TO OUTPUT MEMORY BLOCKS VIA HEX AND ASCII DESCRIPTORS 
+ff05			; ------------------------------------------------------------------------------ 
+ff05 cd 33 fc		DUMP:       CALL    GET2PAR         ; Line 1553 ; Parse text string block variables 
+ff08 3a 4e 00		            LD      A,(NPARS)       ; Line 1554 ; Query parsed argument metrics count 
+ff0b a7			            AND     A               ; Line 1555  
+ff0c 2a 79 00		            LD      HL,(DISPAD)     ; Line 1556 ; Load continuous tracking address from cache 
+ff0f 11 7f 00		            LD      DE,DEFLEN       ; Line 1557 ; Load system default block data span length 
+ff12 28 0d		            JR      Z,DISPLAY       ; Line 1558 ; No parameters, use defaults 
+ff14 2a 4a 00		            LD      HL,(PAR1)       ; Line 1560 ; Custom parameters found, focus target 
+ff17 3d			            DEC     A               ; Line 1561 ; Evaluate trailing argument limits 
+ff18 28 07		            JR      Z,DISPLAY       ; Line 1562 ; Single custom argument, use default bounds 
+ff1a eb			            EX      DE,HL           ; Line 1563 ; Multi-argument setup coordinates 
+ff1b 2a 4c 00		            LD      HL,(PAR2)       ; Line 1564 ; Extract custom terminal boundary block 
+ff1e eb			            EX      DE,HL           ; Line 1565 ; HL = Start memory pointer, DE = End memory pointer 
+ff1f 18 04		            JR      DISPL           ; Line 1566  
+ff21 e5			DISPLAY:    PUSH    HL              ; Line 1567  
+ff22 19			            ADD     HL,DE           ; Line 1568 ; Factor default boundary spacing bounds 
+ff23 eb			            EX      DE,HL           ; Line 1569 ; DE = Calculated end address boundary markers 
+ff24 e1			            POP     HL              ; Line 1570 ; HL = Restore start layout base 
+ff25 7d			DISPL:      LD      A,L             ; Line 1571  
+ff26 e6 f0		            AND     $F0             ; Line 1572 ; Align display view row blocks onto 16-byte tracks 
+ff28 6f			            LD      L,A             ; Line 1573  
+ff29 7b			            LD      A,E             ; Line 1574  
+ff2a e6 f0		            AND     $F0             ; Line 1575  
+ff2c c6 10		            ADD     A,16            ; Line 1576 ; Enforce rounding ceiling limits 
+ff2e 5f			            LD      E,A             ; Line 1577  
+ff2f 30 01		            JR      NC,DISPLIN      ; Line 1578 ; Carry clear, row tracks balance 
+ff31 14			            INC     D               ; Line 1579  
+ff32 e5			DISPLIN:    PUSH    HL              ; Line 1580 ; Cache line tracking start boundary vector index 
+ff33 cd 89 fc		            CALL    PNLHLSP         ; Line 1581 ; Print row location out: CR, LF, Address, space 
+ff36 cd 94 fc		            CALL    SPACE           ; Line 1582  
+ff39 06 08		            LD      B,8             ; Line 1583 ; Initialize visual dual-column loop count limit 
+ff3b 7e			PRTPAIR:    LD      A,(HL)          ; Line 1584 ; Fetch live data memory byte from RAM 
+ff3c 23			            INC     HL              ; Line 1585  
+ff3d cd 5f fc		            CALL    PRTA            ; Line 1586 ; Convert and output byte data hex digits to screen 
+ff40 7e			            LD      A,(HL)          ; Line 1587 ; Fetch tracking dual data byte element 
+ff41 23			            INC     HL              ; Line 1588  
+ff42 cd 91 fc		            CALL    PRTASP          ; Line 1589 ; Convert and output byte data hex digits with space 
+ff45 10 f4		            DJNZ    PRTPAIR         ; Line 1590 ; Continue text row parsing blocks pass satisfying rows 
+ff47 e1			            POP     HL              ; Line 1591 ; Restore line base address tracking focus 
+ff48 06 10		            LD      B,16            ; Line 1592 ; Set ASCII alternative rendering column block width 
+ff4a 7e			TXTPRT:     LD      A,(HL)          ; Line 1593 ; Extract byte parameter context element data 
+ff4b fe 20		            CP      $20             ; Line 1594 ; Check character limits bounds text value space 
+ff4d 38 04		            JR      C,NOASC         ; Line 1595 ; Character non-printable control code, hide element 
+ff4f fe 80		            CP      $80             ; Line 1596 ; Evaluate against high parity character threshold 
+ff51 38 02		            JR      C,PRNT          ; Line 1597 ; Printable standard ASCII character validated clean 
+ff53 3e 2e		NOASC:      LD      A,'.'           ; Line 1598 ; Format invalid character out as placeholder dot 
+ff55 cd d4 f8		PRNT:       CALL    CONOUT          ; Line 1599 ; Stream character out to console display track 
+ff58 23			            INC     HL              ; Line 1600  
+ff59 10 ef		            DJNZ    TXTPRT          ; Line 1601 ; Loop layout text until entire 16-character column fills 
+ff5b 22 79 00		            LD      (DISPAD),HL     ; Line 1602 ; Update default terminal address mapping location 
+ff5e cd 24 fb		            CALL    DPCMP           ; Line 1603 ; Absolute terminal block display views balanced? 
+ff61 20 cf		            JR      NZ,DISPLIN      ; Line 1604 ; Array segment has remaining blocks, output following row 
+ff63 c9			            RET                     ; Line 1605  
+ff64			 
+ff64			; ------------------------------------------------------------------------------ 
+ff64			; MOVE - BLOCK MEMORY SHIFTING AND PROTECTION SYSTEM SUBROUTINES 
+ff64			; ------------------------------------------------------------------------------ 
+ff64 cd 53 fc		MOVE:       CALL    PCHECK          ; Line 1616 ; Extract movement tracking address block parameters 
+ff67 fe 2c		            CP      ','             ; Line 1617 ; Check syntax separator structure parameters limits 
+ff69 c2 de fb		            JP      NZ,PARER        ; Line 1618 ; Formatting parsing exception error, abort task path 
+ff6c cd f4 fb		            CALL    PARAM           ; Line 1619 ; Extract movement destination address parameters 
+ff6f e5			            PUSH    HL              ; Line 1620 ; Cache destination block target mapping address vector 
+ff70 2a 4a 00		            LD      HL,(PAR1)       ; Line 1621 ; Extract primary source origin block starting address 
+ff73 eb			            EX      DE,HL           ; Line 1622  
+ff74 2a 4c 00		            LD      HL,(PAR2)       ; Line 1623 ; Extract primary source origin block terminal address 
+ff77 d5			            PUSH    DE              ; Line 1624  
+ff78 b7			            OR      A               ; Line 1625 ; Reset internal carry flags matrix values to zero 
+ff79 ed 52		            SBC     HL,DE           ; Line 1626 ; Process subtraction calculations to measure block size 
+ff7b 44			            LD      B,H             ; Line 1627 ; Copy calculated data load block size parameter into BC 
+ff7c 4d			            LD      C,L             ; Line 1628  
+ff7d e1			            POP     HL              ; Line 1629 ; HL = Source location starting address mapping track 
+ff7e d1			            POP     DE              ; Line 1630 ; DE = Destination location starting address mapping track 
+ff7f cd 24 fb		            CALL    DPCMP           ; Line 1631 ; Evaluate coordinates boundaries layout vectors paths 
+ff82 c8			            RET     Z               ; Line 1632 ; Coordinates balance identically, no shifting needed 
+ff83 38 04		            JR      C,MVDWN         ; Line 1633 ; Shift path destination overlaps forward, move backward 
+ff85 03			            INC     BC              ; Line 1634  
+ff86 ed b0		            LDIR                    ; Line 1635 ; Secure memory shift execution pass: Bottom up tracking 
+ff88 c9			            RET                     ; Line 1636  
+ff89 09			MVDWN:      ADD     HL,BC           ; Line 1637 ; Adjust address paths focus points over block end 
+ff8a eb			            EX      DE,HL           ; Line 1638  
+ff8b 09			            ADD     HL,BC           ; Line 1639  
+ff8c eb			            EX      DE,HL           ; Line 1640 ; DE = Recalculated destination terminal vector point 
+ff8d 03			            INC     BC              ; Line 1641  
+ff8e ed b8		            LDDR                    ; Line 1642 ; Secure memory shift execution pass: Top down tracking 
+ff90 c9			            RET                     ; Line 1643  
+ff91			;snip 
+ff91			; ------------------------------------------------------------------------------ 
+ff91			; DATA BLOCK DEFINITIONS & EXPLICIT STORAGE TABLES 
+ff91			; ------------------------------------------------------------------------------ 
+ff91 80 53 40 5a 10 41 04 50 02 4e 01 43	FLGTAB:     DEFB    $80, 'S', $40, 'Z', $10, 'A', $04, 'P', $02, 'N', $01, 'C' ; Line 1646  
+ff9d ..			REGTAB:     DEFM    "PSYXHDB"       ; Line 1647  
+ffa4			 
+ffa4 0c			SGNON:      DEFB    FF              ; Line 1649 ; Clear Screen macro instruction code 
+ffa5 ..			            DEFM    "TUSCAN V1.0 MITSI" ; Line 1650 ; Console initialization splash header 
+ffb6 04			            DEFB    EOT             ; Line 1651  
+ffb7 ..			TPROMP:     DEFM    "FILES FOUND :" ; Line 1652  
+ffc4 04			            DEFB    EOT             ; Line 1653  
+ffc5 0d 0a		ALLSET:     DEFB    CR, LF          ; Line 1654  
+ffc7 ..			            DEFM    "ALL SET"       ; Line 1655  
+ffce 04			            DEFB    EOT             ; Line 1656  
+ffcf 0d 0a		REGHDR:     DEFB    CR, LF          ; Line 1657  
+ffd1 ..			            DEFM    "FLAGS I A BC  DE  HL" ; Line 1658  
+ffe5 ..			            DEFM    "   IX   IY   SP   PC" ; Line 1659  
+fff9 04			            DEFB    EOT             ; Line 1660  
+fffa			 
+fffa			            END                     ; Line 1662 ; Formal End of Compiled Source Stream 
 # End of file mitsimon.asm
-fffb
+fffa

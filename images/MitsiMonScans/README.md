@@ -160,9 +160,4 @@ MitsiMon_0028.png
 MitsiMon_0029.png
 </td>
 
-<td valign="bottom">
-<img src="./New Folder With Items" width="200"><br>
-New Folder With Items
-</td>
-
 </tr></table>

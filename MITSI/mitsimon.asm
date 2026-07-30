@@ -275,7 +275,7 @@ TAPE:       CALL    CONST           ; Line 0262 ; Check console line for dynamic
             RET     Z               ; Line 0268 ; Return with data if no errors present
             LD      A,'?'           ; Line 0269 ; Initialize error notification flag
             LD      (PAR1),A        ; Line 0270 ; Update tracking cache interface state
-            RET                     ; Line 0272 
+;            RET                     ; Line 0272 
 ;snip
 ; ==============================================================================
 ; Z80 ASSEMBLY SOURCE CODE - PART 6 OF 8
