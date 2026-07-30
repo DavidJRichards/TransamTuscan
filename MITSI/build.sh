@@ -8,6 +8,8 @@
 SOURCE_FILE="mitsimon.asm"
 RAW_BIN="mitsimon.bin"
 LIST_FILE="mitsimon.lis"
+SYMBOL_FILE="mitsimon.sym"
+SYMBOL_PRINT="mitsimon.prn"
 FINAL_ROM="mitsimon_eprom.bin"
 TARGET_SIZE=2048
 
@@ -24,7 +26,7 @@ fi
 # -l : Generates a complete .lis file with a full symbol and address map table.
 # Redirect standard list output straight into the local .lis target file
 # Execute GNU z80asm and redirect both standard output and error streams to the list file
-z80asm -l -L -o "$RAW_BIN" "$SOURCE_FILE" > "$LIST_FILE" 2>&1
+z80asm -l"$LIST_FILE" -L"$SYMBOL_FILE" -o "$RAW_BIN" "$SOURCE_FILE" 
 
 
 
@@ -34,6 +36,32 @@ if [ $? -ne 0 ]; then
 else
     echo "✅ Success: Raw assembly phase complete without faults."
 fi
+
+# Run the embedded Perl script directly inside the shell file
+perl -e '
+  my @low; my @high;
+  while (<>) {
+    if (/\$(\mu|[0-9a-fA-F]+)/) {
+      my $val = hex($1);
+      if ($val < hex("f800")) { push @low, [$val, $_]; }
+      else { push @high, [$val, $_]; }
+    }
+  }
+  @low = sort { $a->[0] <=> $b->[0] } @low;
+  @high = sort { $a->[0] <=> $b->[0] } @high;
+  
+  print "=== MEMORY BELOW \$F800 ===\n";
+  open(my $ph1, "| expand -t 12 | pr -3 -t -w 132 | expand");
+  print $ph1 $_->[1] for @low;
+  close($ph1);
+  
+  print "\n\n=== MEMORY \$F800 AND ABOVE ===\n";
+  open(my $ph2, "| expand -t 12 | pr -3 -t -w 132 | expand");
+  print $ph2 $_->[1] for @high;
+  close($ph2);
+' "$SYMBOL_FILE" > "$SYMBOL_PRINT"
+
+echo "Formatted symbol list saved to $SYMBOL_PRINT"
 
 echo ""
 echo "================================================================================"
