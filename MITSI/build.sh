@@ -24,7 +24,7 @@ fi
 # -l : Generates a complete .lis file with a full symbol and address map table.
 # Redirect standard list output straight into the local .lis target file
 # Execute GNU z80asm and redirect both standard output and error streams to the list file
-z80asm -l -o "$RAW_BIN" "$SOURCE_FILE" > "$LIST_FILE" 2>&1
+z80asm -l -L -o "$RAW_BIN" "$SOURCE_FILE" > "$LIST_FILE" 2>&1
 
 
 
@@ -40,11 +40,14 @@ echo "==========================================================================
 echo "📦 STEP 2: Isolating EPROM Space and Trimming Lower RAM Footprint..."
 echo "================================================================================"
 
+# these calculations are wrong! I needed to add 5 bytes
 # Calculate bytes used by RAM workspace blocks from line 0070 to 0122 ($0003 to $0100 range)
 # $0003 to $0040 (61 bytes) + $0040 to $0100 workspace. Total layout overhead is exactly 149 bytes!
 # We strip the first 149 bytes so the binary starts strictly at ORG $F800 (TRUMP: JP PON)
-echo "✂️  Trimming 149 bytes of lower zero-allocated RAM workspace from binary start..."
-dd if="$RAW_BIN" of="$FINAL_ROM" bs=1 skip=149 status=none
+#echo "✂️  Trimming 149 bytes of lower zero-allocated RAM workspace from binary start..."
+echo "✂️  Trimming 154 bytes of lower zero-allocated RAM workspace from binary start..."
+#dd if="$RAW_BIN" of="$FINAL_ROM" bs=1 skip=149 status=none
+dd if="$RAW_BIN" of="$FINAL_ROM" bs=1 skip=154 status=none
 
 CURRENT_SIZE=$(wc -c < "$FINAL_ROM" | tr -d ' ')
 echo "📊 Pure EPROM Code Footprint: $CURRENT_SIZE bytes"

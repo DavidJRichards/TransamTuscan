@@ -1417,7 +1417,7 @@ ALLSET:     DEFB    CR, LF          ; Line 1654
             DEFM    "ALL SET"       ; Line 1655 
             DEFB    EOT             ; Line 1656 
 REGHDR:     DEFB    CR, LF          ; Line 1657 
-            DEFM    "FLAGS I A BC  DE  HL" ; Line 1658 
+            DEFM    "FLAGS   I  A  BC   DE  HL" ; Line 1658 
             DEFM    "   IX   IY   SP   PC" ; Line 1659 
             DEFB    EOT             ; Line 1660 
 
