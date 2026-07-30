@@ -1,29 +1,29 @@
 === MEMORY BELOW $F800 ===
-RSDO:       equ $0000                       SPAC:       equ $0020                       NXTCH:      equ $007b
-RSS:        equ $0000                       PROMPT:     equ $002a                       PRNTSW:     equ $007c
-RSDI:       equ $0001                       RST7:       equ $0038                       LOCKSW:     equ $007d
-TAPEDO:     equ $0001                       CHBUFF:     equ $0040                       SRAM1:      equ $007e
-TAPES:      equ $0002                       CURPOS:     equ $0041                       DEFLEN:     equ $007f
-VDU:        equ $0002                       CHCNT:      equ $0042                       DEL:        equ $007f
-ETX:        equ $0003                       PRMP:       equ $0043                       SRAM2:      equ $007f
-IOBYTE:     equ $0003                       BUFAD:      equ $0044                       SRAM3:      equ $0080
-PRINT:      equ $0003                       BUFPTR:     equ $0046                       SRAM4:      equ $0081
-TAPEDI:     equ $0003                       TOPRAM:     equ $0048                       SRAM5:      equ $0082
-EOT:        equ $0004                       PAR1:       equ $004a                       SRAM6:      equ $0083
-IOSEL:      equ $0004                       PAR2:       equ $004c                       SRAM7:      equ $0084
-KBD:        equ $0005                       NPARS:      equ $004e                       INBUFF:     equ $0085
-RSHS:       equ $0006                       BPTAB:      equ $004f                       DECMRK:     equ $009c
-PRINTHS:    equ $0007                       BUFSIZ:     equ $0050                       JUMP:       equ $00c3
-PRINTST:    equ $0007                       ISAV:       equ $0067                       WORKE:      equ $00d6
-BS:         equ $0008                       AFSAV:      equ $0069                       MONPAG:     equ $00f8
-NBP:        equ $0008                       BCSAV:      equ $006b                       BRK:        equ $00ff
-TAB:        equ $0009                       DESAV:      equ $006d                       MONSTK:     equ $0100
-LF:         equ $000a                       HLSAV:      equ $006f                       PASCAL:     equ $8000
-FF:         equ $000c                       IXSAV:      equ $0071                       MMOUT:      equ $d400
-CR:         equ $000d                       IYSAV:      equ $0073                       MMINIT:     equ $d700
-XOFF:       equ $0013                       SPSAV:      equ $0075                       TRACE:      equ $f000
-ESC:        equ $001b                       PCSAV:      equ $0077                       EDIT:       equ $f7fd
-CHOME:      equ $001c                       DISPAD:     equ $0079
+RSDO:       equ $0000                       SPAC:       equ $0020                       DISPAD:     equ $0079
+RSS:        equ $0000                       DECMRK:     equ $0023                       NXTCH:      equ $007b
+RSDI:       equ $0001                       PROMPT:     equ $002a                       PRNTSW:     equ $007c
+TAPEDO:     equ $0001                       RST7:       equ $0038                       LOCKSW:     equ $007d
+TAPES:      equ $0002                       CHBUFF:     equ $0040                       SRAM1:      equ $007e
+VDU:        equ $0002                       CURPOS:     equ $0041                       DEFLEN:     equ $007f
+ETX:        equ $0003                       CHCNT:      equ $0042                       DEL:        equ $007f
+IOBYTE:     equ $0003                       PRMP:       equ $0043                       SRAM2:      equ $007f
+PRINT:      equ $0003                       BUFAD:      equ $0044                       SRAM3:      equ $0080
+TAPEDI:     equ $0003                       BUFPTR:     equ $0046                       SRAM4:      equ $0081
+EOT:        equ $0004                       TOPRAM:     equ $0048                       SRAM5:      equ $0082
+IOSEL:      equ $0004                       PAR1:       equ $004a                       SRAM6:      equ $0083
+KBD:        equ $0005                       PAR2:       equ $004c                       SRAM7:      equ $0084
+RSHS:       equ $0006                       NPARS:      equ $004e                       INBUFF:     equ $0085
+PRINTHS:    equ $0007                       BPTAB:      equ $004f                       JUMP:       equ $00c3
+PRINTST:    equ $0007                       BUFSIZ:     equ $0050                       WORKE:      equ $00d6
+BS:         equ $0008                       ISAV:       equ $0067                       MONPAG:     equ $00f8
+NBP:        equ $0008                       AFSAV:      equ $0069                       BRK:        equ $00ff
+TAB:        equ $0009                       BCSAV:      equ $006b                       MONSTK:     equ $0100
+LF:         equ $000a                       DESAV:      equ $006d                       PASCAL:     equ $8000
+FF:         equ $000c                       HLSAV:      equ $006f                       MMOUT:      equ $d400
+CR:         equ $000d                       IXSAV:      equ $0071                       MMINIT:     equ $d700
+XOFF:       equ $0013                       IYSAV:      equ $0073                       TRACE:      equ $f000
+ESC:        equ $001b                       SPSAV:      equ $0075                       EDIT:       equ $f7fd
+CHOME:      equ $001c                       PCSAV:      equ $0077
 
 
 === MEMORY $F800 AND ABOVE ===

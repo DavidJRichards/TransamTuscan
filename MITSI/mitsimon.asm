@@ -26,7 +26,7 @@ CHOME:      EQU     $1C             ; Line 0020 ; Cursor Home
 SPAC:       EQU     $20             ; Line 0021 ; Space character
 DEL:        EQU     $7F             ; Line 0022 ; Delete character
 
-DECMRK:     EQU     156 ;'£'             ; Line 0024 ; Decimal number flag
+DECMRK:     EQU     '#'             ; Line 0024 ; Decimal number flag (JS)
 PROMPT:     EQU     '*'             ; Line 0025 ; Monitor prompt symbol
 
 JUMP:       EQU     $C3             ; Line 0027 ; Z80 JP instruction opcode
@@ -194,7 +194,7 @@ CONST:      CALL    ACONST          ; Line 1176 ; Poll keyboard status
 
 ACONST:     LD      A,(IOBYTE)      ; Line 0187 ; Evaluate active I/O mapping configuration
             AND     $30             ; Line 0188 ; Mask out console device lines
-            JR      Z,RSIN          ; Line 0189 ; Routing to RS232, else local keyboard
+            JR      Z,RSST          ; Line 0189 ; Routing to RS232, else local keyboard (JS)
             PUSH    HL              ; Line 0190 
             PUSH    BC              ; Line 0191 
             LD      HL,CHBUFF       ; Line 0192 ; Keyboard data buffer address pointer
@@ -305,7 +305,7 @@ CHOUT:      LD      C,A             ; Line 0292 ; Cache character in C
             LD      A,C             ; Line 0294 ; Restore character
             CALL    ACONOUT         ; Line 0295 ; Write to primary console hardware
             LD      A,(PRNTSW)      ; Line 0296 ; Check external printer routing switch
-            AND     A               ; Line 0297 ; Is the printer stream active?
+            OR      A               ; Line 0297 ; Is the printer stream active? (JS)
             LD      A,C             ; Line 0298 ; Restore character
             CALL    NZ,LIST         ; Line 0299 ; If active, mirror stream to printer
             LD      HL,CHCNT        ; Line 0300 ; Pointer to stream column counter
@@ -344,7 +344,7 @@ ACONOUT:    PUSH    BC              ; Line 0323 ; Save work registers
 ; Target Assembler: z80asm / z88dk
 ; ==============================================================================
 
-VDUOUT:     DEC     A               ; Line 0329 
+VDUOUT:     LD      A,C             ; Line 0329 ; (JS)
             AND     $7F             ; Line 0330 ; Bring strobe line low
             OUT     (VDU),A         ; Line 0331 
             OR      $80             ; Line 0332 ; Pull strobe line high
@@ -845,11 +845,11 @@ PARAM:      CALL    GETUCT          ; Line 0934 ; GET CHARACTER
             JR      NC,PARER        ; Line 0944 ; FAULT DISCOVERED
             CCF                     ; Line 0945 ; CLEAR CARRY STATE
             RET                     ; Line 0946 
-NOTLIT:     CP      DECMRK          ; Line 0947 ; DECIMAL SYMBOL FLAG?
+NOTLIT:     CP      DECMRK          ; Line 0947 ; DECIMAL SYMBOL FLAG?  (JS)
             JR      NZ,HEX          ; Line 0948 ; NO, SKIP TO HEX INTERPRETER
 DECPAR:     CALL    GETDEC          ; Line 0949 ; EXTRACT VALUE DIGIT
             CCF                     ; Line 0950 ; SYNC CONTROL STATE
-            RET     C               ; Line 0951 ; GOT LINE TERMINATOR
+            RET     NC              ; Line 0951 ; GOT LINE TERMINATOR (JS)
             PUSH    HL              ; Line 0952 
             POP     DE              ; Line 0953 ; HL COPY IN DE
             ADD     HL,HL           ; Line 0954 ; SCALE HL BY 10 (HL=HL*2)

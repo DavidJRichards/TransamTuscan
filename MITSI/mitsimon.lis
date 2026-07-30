@@ -27,7 +27,7 @@
 0000			SPAC:       EQU     $20             ; Line 0021 ; Space character 
 0000			DEL:        EQU     $7F             ; Line 0022 ; Delete character 
 0000			 
-0000			DECMRK:     EQU     156 ;'£'             ; Line 0024 ; Decimal number flag 
+0000			DECMRK:     EQU     '#'             ; Line 0024 ; Decimal number flag (JS) 
 0000			PROMPT:     EQU     '*'             ; Line 0025 ; Monitor prompt symbol 
 0000			 
 0000			JUMP:       EQU     $C3             ; Line 0027 ; Z80 JP instruction opcode 
@@ -195,7 +195,7 @@ f861 c9			            RET                     ; Line 0185 ; Resume program execu
 f862			 
 f862 3a 03 00		ACONST:     LD      A,(IOBYTE)      ; Line 0187 ; Evaluate active I/O mapping configuration 
 f865 e6 30		            AND     $30             ; Line 0188 ; Mask out console device lines 
-f867 28 50		            JR      Z,RSIN          ; Line 0189 ; Routing to RS232, else local keyboard 
+f867 28 19		            JR      Z,RSST          ; Line 0189 ; Routing to RS232, else local keyboard (JS) 
 f869 e5			            PUSH    HL              ; Line 0190  
 f86a c5			            PUSH    BC              ; Line 0191  
 f86b 21 40 00		            LD      HL,CHBUFF       ; Line 0192 ; Keyboard data buffer address pointer 
@@ -306,7 +306,7 @@ f8ed cd 4e f8		            CALL    CONST           ; Line 0293 ; Check for pause
 f8f0 79			            LD      A,C             ; Line 0294 ; Restore character 
 f8f1 cd 1f f9		            CALL    ACONOUT         ; Line 0295 ; Write to primary console hardware 
 f8f4 3a 7c 00		            LD      A,(PRNTSW)      ; Line 0296 ; Check external printer routing switch 
-f8f7 a7			            AND     A               ; Line 0297 ; Is the printer stream active? 
+f8f7 b7			            OR      A               ; Line 0297 ; Is the printer stream active? (JS) 
 f8f8 79			            LD      A,C             ; Line 0298 ; Restore character 
 f8f9 c4 a3 f9		            CALL    NZ,LIST         ; Line 0299 ; If active, mirror stream to printer 
 f8fc 21 42 00		            LD      HL,CHCNT        ; Line 0300 ; Pointer to stream column counter 
@@ -345,7 +345,7 @@ f92b			; Source: MITSI Monitor for Tuscan System 1
 f92b			; Target Assembler: z80asm / z88dk 
 f92b			; ============================================================================== 
 f92b			 
-f92b 3d			VDUOUT:     DEC     A               ; Line 0329  
+f92b 79			VDUOUT:     LD      A,C             ; Line 0329 ; (JS) 
 f92c e6 7f		            AND     $7F             ; Line 0330 ; Bring strobe line low 
 f92e d3 02		            OUT     (VDU),A         ; Line 0331  
 f930 f6 80		            OR      $80             ; Line 0332 ; Pull strobe line high 
@@ -846,11 +846,11 @@ fc07 cd a6 fb		            CALL    GETUCT          ; Line 0943 ; CHECK LINKING T
 fc0a 30 d2		            JR      NC,PARER        ; Line 0944 ; FAULT DISCOVERED 
 fc0c 3f			            CCF                     ; Line 0945 ; CLEAR CARRY STATE 
 fc0d c9			            RET                     ; Line 0946  
-fc0e fe 9c		NOTLIT:     CP      DECMRK          ; Line 0947 ; DECIMAL SYMBOL FLAG? 
+fc0e fe 23		NOTLIT:     CP      DECMRK          ; Line 0947 ; DECIMAL SYMBOL FLAG?  (JS) 
 fc10 20 11		            JR      NZ,HEX          ; Line 0948 ; NO, SKIP TO HEX INTERPRETER 
 fc12 cd ba fb		DECPAR:     CALL    GETDEC          ; Line 0949 ; EXTRACT VALUE DIGIT 
 fc15 3f			            CCF                     ; Line 0950 ; SYNC CONTROL STATE 
-fc16 d8			            RET     C               ; Line 0951 ; GOT LINE TERMINATOR 
+fc16 d0			            RET     NC              ; Line 0951 ; GOT LINE TERMINATOR (JS) 
 fc17 e5			            PUSH    HL              ; Line 0952  
 fc18 d1			            POP     DE              ; Line 0953 ; HL COPY IN DE 
 fc19 29			            ADD     HL,HL           ; Line 0954 ; SCALE HL BY 10 (HL=HL*2) 

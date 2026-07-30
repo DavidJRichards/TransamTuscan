@@ -47,7 +47,7 @@ CURPOS:	equ $0041
 D250:	equ $fb1a
 DBMS:	equ $f978
 DECCHK:	equ $fbbe
-DECMRK:	equ $009c
+DECMRK:	equ $0023
 DECPAR:	equ $fc12
 DEFLEN:	equ $007f
 DEL:	equ $007f
